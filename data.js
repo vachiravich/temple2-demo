@@ -1,5 +1,5 @@
 // ข้อมูลจำลองตามโครงสร้าง Google Sheet สำหรับระบบคณะสงฆ์จังหวัดพระนครศรีอยุธยา (ข้อมูลจำลอง)
-const SANGHA_DATA = {
+const INITIAL_SANGHA_DATA = {
   provinceName: "จังหวัดพระนครศรีอยุธยา (ข้อมูลจำลอง)",
   statistics: {
     totalTemples: 524,
@@ -401,24 +401,28 @@ const SANGHA_DATA = {
   ],
   events: [
     {
+      id: "evt-01",
       date: "วันอาทิตย์ที่ 21 มิถุนายน 2569",
       title: "วันพระ (ขึ้น ๘ ค่ำ เดือน ๘)",
       type: "holy-day",
       description: "ทำบุญตักบาตร ฟังพระธรรมเทศนา ณ วัดใกล้บ้านในเขตพื้นที่"
     },
     {
+      id: "evt-02",
       date: "วันอาทิตย์ที่ 28 มิถุนายน 2569",
       title: "วันอาสาฬหบูชา (ขึ้น ๑๕ ค่ำ เดือน ๘)",
       type: "holy-day",
       description: "พิธีเวียนเทียน ถวายเทียนพรรษา และเทศนาธรรมใหญ่ประจำปี ณ วัดพนัญเชิงวรวิหาร และวัดต่างๆ ทุกตำบล"
     },
     {
+      id: "evt-03",
       date: "วันพุธที่ 1 กรกฎาคม 2569",
       title: "การประชุมคณะสงฆ์จังหวัดพระนครศรีอยุธยา ประจำเดือน",
       type: "meeting",
       description: "ประชุมพระสังฆาธิการระดับเจ้าคณะตำบลและเจ้าคณะอำเภอ ณ ศาลาการเปรียญวัดพนัญเชิงวรวิหาร เวลา 13.00 น."
     },
     {
+      id: "evt-04",
       date: "วันเสาร์ที่ 11 กรกฎาคม 2569",
       title: "โครงการฝึกอบรมบาลีก่อนสอบคณะสงฆ์ ภาค 2",
       type: "training",
@@ -426,13 +430,26 @@ const SANGHA_DATA = {
     }
   ],
   temples: [
-    { name: "วัดพนัญเชิงวรวิหาร", type: "พระอารามหลวงชั้นโท", district: "อ.พระนครศรีอยุธยา", subdistrict: "คลองสวนพลู", abbot: "พระธรรมรัตนมงคล" },
-    { name: "วัดท่าการ้อง", type: "วัดราษฎร์", district: "อ.พระนครศรีอยุธยา", subdistrict: "บ้านป้อม", abbot: "พระราชพัฒนาภรณ์" },
-    { name: "วัดกษัตราธิราชวรวิหาร", type: "พระอารามหลวงชั้นตรี", district: "อ.พระนครศรีอยุธยา", subdistrict: "บ้านป้อม", abbot: "พระศรีปริยัติเมธี" },
-    { name: "วัดราษฎร์บำรุง", type: "วัดราษฎร์", district: "อ.พระนครศรีอยุธยา", subdistrict: "หัวรอ", abbot: "พระครูวิมลธรรมวิจิตร" },
-    { name: "วัดรัตนคีรี", type: "วัดราษฎร์", district: "อ.ท่าเรือ", subdistrict: "จำปา", abbot: "พระครูสิริปัญญากร" },
-    { name: "วัดยม", type: "วัดราษฎร์", district: "อ.นครหลวง", subdistrict: "บ่อโพง", abbot: "พระครูเกษมศีลคุณ" },
-    { name: "วัดบางพลี", type: "วัดราษฎร์", district: "อ.บางไทร", subdistrict: "บางพลี", abbot: "พระครูพิพัฒน์สารธรรม" },
-    { name: "วัดกุฎีดาว", type: "วัดราษฎร์", district: "อ.พระนครศรีอยุธยา", subdistrict: "กุฎีดาว", abbot: "พระสมุห์อรรถพล" }
+    { id: "tmp-01", name: "วัดพนัญเชิงวรวิหาร", type: "พระอารามหลวงชั้นโท", district: "อ.พระนครศรีอยุธยา", subdistrict: "คลองสวนพลู", abbot: "พระธรรมรัตนมงคล" },
+    { id: "tmp-02", name: "วัดท่าการ้อง", type: "วัดราษฎร์", district: "อ.พระนครศรีอยุธยา", subdistrict: "บ้านป้อม", abbot: "พระราชพัฒนาภรณ์" },
+    { id: "tmp-03", name: "วัดกษัตราธิราชวรวิหาร", type: "พระอารามหลวงชั้นตรี", district: "อ.พระนครศรีอยุธยา", subdistrict: "บ้านป้อม", abbot: "พระศรีปริยัติเมธี" },
+    { id: "tmp-04", name: "วัดราษฎร์บำรุง", type: "วัดราษฎร์", district: "อ.พระนครศรีอยุธยา", subdistrict: "หัวรอ", abbot: "พระครูวิมลธรรมวิจิตร" },
+    { id: "tmp-05", name: "วัดรัตนคีรี", type: "วัดราษฎร์", district: "อ.ท่าเรือ", subdistrict: "จำปา", abbot: "พระครูสิริปัญญากร" },
+    { id: "tmp-06", name: "วัดยม", type: "วัดราษฎร์", district: "อ.นครหลวง", subdistrict: "บ่อโพง", abbot: "พระครูเกษมศีลคุณ" },
+    { id: "tmp-07", name: "วัดบางพลี", type: "วัดราษฎร์", district: "อ.บางไทร", subdistrict: "บางพลี", abbot: "พระครูพิพัฒน์สารธรรม" },
+    { id: "tmp-08", name: "วัดกุฎีดาว", type: "วัดราษฎร์", district: "อ.พระนครศรีอยุธยา", subdistrict: "กุฎีดาว", abbot: "พระสมุห์อรรถพล" }
   ]
 };
+
+// ตรวจสอบและเริ่มต้นข้อมูลใน LocalStorage
+if (!localStorage.getItem("SANGHA_DATABASE")) {
+  localStorage.setItem("SANGHA_DATABASE", JSON.stringify(INITIAL_SANGHA_DATA));
+}
+
+// อ้างอิงตัวแปรหลักโดยการอ่านค่าจริงจาก LocalStorage ทุกครั้งที่มีการเรียกใช้ไฟล์นี้
+const SANGHA_DATA = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
+
+// ฟังก์ชันช่วยสำหรับการบันทึกข้อมูลย้อนกลับไปยัง LocalStorage
+function saveSanghaDatabase(updatedData) {
+  localStorage.setItem("SANGHA_DATABASE", JSON.stringify(updatedData));
+}

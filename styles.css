@@ -1247,3 +1247,513 @@ a:hover {
   border-bottom: 2px solid var(--accent-gold) !important;
 }
 
+/* ==========================================================================
+   ADMIN & BACK-OFFICE STYLING
+   ========================================================================== */
+
+.admin-body {
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+}
+
+/* 1. Login Screen Styling */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--hero-gradient);
+}
+
+.login-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--card-shadow);
+  position: relative;
+  text-align: center;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1.5px;
+  background: linear-gradient(to bottom right, var(--accent-gold), transparent 60%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.login-logo {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-hover) 100%);
+  color: #fff;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 4px 15px rgba(var(--accent-gold-rgb), 0.3);
+  font-size: 28px;
+}
+
+.login-header h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.login-header p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.login-alert {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group label i {
+  width: 14px;
+  height: 14px;
+  color: var(--accent-gold);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.login-footer {
+  margin-top: 24px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 20px;
+}
+
+.login-footer p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 2. Admin Dashboard Layout */
+.admin-dashboard-wrapper {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+@media (max-width: 992px) {
+  .admin-dashboard-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-sidebar {
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-light);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+@media (max-width: 992px) {
+  .admin-sidebar {
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+  }
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.sidebar-brand i {
+  color: var(--accent-gold);
+  font-size: 24px;
+}
+
+.sidebar-brand h3 {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.sidebar-brand span {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.admin-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-tertiary);
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-light);
+}
+
+.admin-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-hover));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.admin-profile-info h4 {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.online-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #22c55e;
+}
+
+.online-status .dot {
+  width: 6px;
+  height: 6px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.nav-item:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--accent-gold);
+  padding-left: 20px;
+}
+
+.nav-item.active {
+  background-color: var(--badge-bg);
+  color: var(--accent-gold);
+  font-weight: 600;
+  border-left: 3px solid var(--accent-gold);
+  border-radius: 0 10px 10px 0;
+}
+
+.sidebar-footer {
+  margin-top: 24px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 20px;
+}
+
+.sidebar-btn {
+  font-size: 13px !important;
+}
+
+/* 3. Content Area */
+.admin-content-area {
+  padding: 40px;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .admin-content-area {
+    padding: 24px 16px;
+    height: auto;
+  }
+}
+
+.admin-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 20px;
+  margin-bottom: 32px;
+}
+
+.topbar-title h2 {
+  font-size: 22px;
+}
+
+.admin-panel {
+  display: none;
+}
+
+.admin-panel.active {
+  display: block;
+}
+
+.welcome-box {
+  background: linear-gradient(135deg, rgba(var(--accent-gold-rgb), 0.1) 0%, rgba(var(--accent-gold-rgb), 0.02) 100%);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+}
+
+.welcome-box h3 {
+  font-size: 16px;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+}
+
+.welcome-box p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 300;
+}
+
+.quick-tools-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+
+.quick-tools-card h3 {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+/* 4. CRUD Tables Styles */
+.table-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.admin-table th {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: 'Prompt', sans-serif;
+  font-weight: 500;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.admin-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+.admin-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 5. Admin Form Styling inside Modals */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .form-grid-2, .form-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+.form-group-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group-item label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.form-group-item input, .form-group-item select {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.form-group-item input:focus, .form-group-item select:focus {
+  border-color: var(--accent-gold);
+}
+
+.form-group-item select {
+  cursor: pointer;
+}
+
+.form-group-item select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Tabs buttons styling override inside Modal */
+.form-tab-btn {
+  background: none !important;
+  border: none !important;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent !important;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.form-tab-btn:hover {
+  color: var(--accent-gold);
+}
+
+.form-tab-btn.active {
+  color: var(--accent-gold) !important;
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent-gold) !important;
+}
+
+.form-tab-content-panel {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.row-actions button {
+  cursor: pointer;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.logo-spin {
+  animation: rotateSlow 25s linear infinite;
+}
+
+

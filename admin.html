@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการหลังบ้าน | คณะสงฆ์จังหวัดพระนครศรีอยุธยา (Demo)</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-body">
+
+  <!-- ==================== 1. LOGIN SCREEN ==================== -->
+  <div class="login-wrapper" id="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <i data-lucide="dharmachakra"></i>
+        </div>
+        <h2>เข้าสู่ระบบจัดการข้อมูลคณะสงฆ์</h2>
+        <p>จังหวัดพระนครศรีอยุธยา (ระบบจำลองหลังบ้าน)</p>
+      </div>
+      
+      <div class="login-alert hidden" id="login-error">
+        <i data-lucide="alert-circle"></i> ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+      </div>
+      
+      <form id="login-form" onsubmit="return false;">
+        <div class="form-group">
+          <label for="username"><i data-lucide="user"></i> ชื่อผู้ใช้งาน (Username)</label>
+          <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้ (demo: 072)" required autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="password"><i data-lucide="key-round"></i> รหัสผ่าน (Password)</label>
+          <input type="password" id="password" placeholder="กรอกรหัสผ่าน (demo: 072)" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-full" style="justify-content: center; width: 100%; margin-top: 16px;">
+          <i data-lucide="log-in"></i> เข้าสู่ระบบ
+        </button>
+      </form>
+      
+      <div class="login-footer">
+        <p>บัญชีทดสอบการใช้งานระบบ: <br><strong>Username: 072 | Password: 072</strong></p>
+        <div class="login-theme-toggle" style="margin-top: 16px;">
+          <button id="login-theme-btn" class="btn btn-secondary btn-icon" style="margin: 0 auto;" aria-label="สลับโหมดสี">
+            <i data-lucide="sun" class="sun-icon"></i>
+            <i data-lucide="moon" class="moon-icon"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== 2. ADMIN DASHBOARD SCREEN ==================== -->
+  <div class="admin-dashboard-wrapper hidden" id="admin-dashboard">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <i data-lucide="dharmachakra" class="logo-spin"></i>
+        <div>
+          <h3>ระบบหลังบ้าน</h3>
+          <span>จังหวัดพระนครศรีอยุธยา</span>
+        </div>
+      </div>
+      
+      <div class="admin-profile-badge">
+        <div class="admin-avatar">072</div>
+        <div class="admin-profile-info">
+          <h4>ผู้ดูแลระบบ (Admin)</h4>
+          <span class="online-status"><span class="dot"></span> Online</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-target="panel-home">
+          <i data-lucide="layout-dashboard"></i> แดชบอร์ดหลัก
+        </button>
+        <button class="nav-item" data-target="panel-monks">
+          <i data-lucide="users-2"></i> จัดการทำเนียบพระสงฆ์
+        </button>
+        <button class="nav-item" data-target="panel-temples">
+          <i data-lucide="home"></i> จัดการรายชื่อวัด
+        </button>
+        <button class="nav-item" data-target="panel-events">
+          <i data-lucide="calendar"></i> จัดการกิจกรรม / วันพระ
+        </button>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="index.html" class="btn btn-secondary w-full sidebar-btn" style="width: 100%; margin-bottom: 10px; justify-content: center;">
+          <i data-lucide="globe"></i> ดูหน้าแรกของเว็บ
+        </a>
+        <button id="logout-btn" class="btn btn-text w-full" style="width: 100%; color: #ef4444; justify-content: center;">
+          <i data-lucide="log-out"></i> ออกจากระบบ
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-content-area">
+      <!-- Top header bar inside admin -->
+      <header class="admin-topbar">
+        <div class="topbar-title">
+          <h2 id="current-panel-title">แดชบอร์ดหลัก</h2>
+        </div>
+        <div class="topbar-actions">
+          <button id="admin-theme-btn" class="btn-icon" aria-label="สลับโหมดสี">
+            <i data-lucide="sun" class="sun-icon"></i>
+            <i data-lucide="moon" class="moon-icon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Panel: Home/Dashboard -->
+      <section class="admin-panel active" id="panel-home">
+        <div class="welcome-box">
+          <h3>ยินดีต้อนรับเข้าสู่ระบบการจัดการข้อมูลคณะสงฆ์!</h3>
+          <p>ท่านสามารถ เพิ่ม แก้ไข หรือลบข้อมูลในส่วนต่าง ๆ ได้ และการเปลี่ยนแปลงจะส่งผลไปแสดงผลที่หน้าแรกของเว็บไซต์ทันที</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 32px;">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper amber"><i data-lucide="users-2"></i></div>
+            <div class="stat-info">
+              <h4 class="stat-number" id="admin-stat-monks">0</h4>
+              <p class="stat-label">รายชื่อพระภิกษุสงฆ์</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper orange"><i data-lucide="home"></i></div>
+            <div class="stat-info">
+              <h4 class="stat-number" id="admin-stat-temples">0</h4>
+              <p class="stat-label">จำนวนวัดทั้งหมด</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrapper gold"><i data-lucide="calendar"></i></div>
+            <div class="stat-info">
+              <h4 class="stat-number" id="admin-stat-events">0</h4>
+              <p class="stat-label">กิจกรรมในปฏิทิน</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="quick-tools-card">
+          <h3>เครื่องมือระบบเพิ่มเติม</h3>
+          <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">ใช้ในการตั้งค่าระบบฐานข้อมูลจำลองใหม่กรณีต้องการล้างข้อมูลเพื่อเริ่มการทดสอบใหม่</p>
+          <button id="reset-db-btn" class="btn btn-secondary" style="border-color: #ef4444; color: #ef4444;">
+            <i data-lucide="rotate-ccw"></i> รีเซ็ตฐานข้อมูลเป็นค่าเริ่มต้นทั้งหมด
+          </button>
+        </div>
+      </section>
+
+      <!-- Panel: Manage Monks -->
+      <section class="admin-panel" id="panel-monks">
+        <div class="table-actions-bar">
+          <div class="search-input-group" style="max-width: 400px; margin-bottom: 0;">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="admin-search-monk" placeholder="ค้นหาพระสงฆ์ตามชื่อ, วัด, ตำแหน่ง...">
+          </div>
+          <button class="btn btn-primary" id="add-monk-btn">
+            <i data-lucide="user-plus"></i> เพิ่มพระภิกษุสงฆ์
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>รูปภาพย่อ</th>
+                <th>ชื่อ-สมณศักดิ์</th>
+                <th>ตำแหน่งปกครอง</th>
+                <th>ฝ่าย/นิกาย</th>
+                <th>สังกัดวัด</th>
+                <th>พรรษา</th>
+                <th>การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="admin-monk-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Panel: Manage Temples -->
+      <section class="admin-panel" id="panel-temples">
+        <div class="table-actions-bar">
+          <div class="search-input-group" style="max-width: 400px; margin-bottom: 0;">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="admin-search-temple" placeholder="ค้นหาวัดตามชื่อ, ตำบล, อำเภอ...">
+          </div>
+          <button class="btn btn-primary" id="add-temple-btn">
+            <i data-lucide="home"></i> เพิ่มรายชื่อวัด
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ชื่อวัด</th>
+                <th>ประเภทวัด</th>
+                <th>ตำบล</th>
+                <th>อำเภอ</th>
+                <th>เจ้าอาวาส</th>
+                <th>การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="admin-temple-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Panel: Manage Events -->
+      <section class="admin-panel" id="panel-events">
+        <div class="table-actions-bar">
+          <div class="search-input-group" style="max-width: 400px; margin-bottom: 0;">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="admin-search-event" placeholder="ค้นหากิจกรรม...">
+          </div>
+          <button class="btn btn-primary" id="add-event-btn">
+            <i data-lucide="calendar"></i> เพิ่มกิจกรรมใหม่
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ประเภท</th>
+                <th>วันเดือนปี</th>
+                <th>ชื่องาน / กิจกรรม</th>
+                <th>รายละเอียดพอสังเขป</th>
+                <th>การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="admin-event-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+
+  <!-- ==================== 3. DIALOG MODAL FOR ADD/EDIT MONK ==================== -->
+  <div class="modal-overlay hidden" id="monk-form-modal">
+    <div class="modal-card" style="max-width: 800px;">
+      <button class="modal-close" id="close-monk-form-btn">
+        <i data-lucide="x"></i>
+      </button>
+      
+      <div class="modal-header-banner" style="height: 60px;"></div>
+      
+      <form id="monk-crud-form">
+        <input type="hidden" id="form-monk-id">
+        
+        <div class="modal-body" style="margin-top: -20px; max-height: 70vh; overflow-y: auto;">
+          <h3 id="form-monk-title" style="margin-bottom: 20px;">เพิ่มข้อมูลพระภิกษุสงฆ์</h3>
+          
+          <!-- Tabs within Form -->
+          <div class="modal-tabs" style="margin-bottom: 24px;">
+            <button type="button" class="form-tab-btn active" data-tab="form-tab-general">1. ข้อมูลส่วนตัวทั่วไป</button>
+            <button type="button" class="form-tab-btn" data-tab="form-tab-ordination">2. ข้อมูลอุปสมบท/สุทธิสงฆ์</button>
+            <button type="button" class="form-tab-btn" data-tab="form-tab-role">3. ตำแหน่งปกครอง & สมณศักดิ์</button>
+          </div>
+
+          <!-- Form Tab 1: General -->
+          <div class="form-tab-content-panel" id="form-tab-general">
+            <div class="form-grid">
+              <div class="form-group-item">
+                <label for="f-title">คำนำหน้า / สมณศักดิ์หลัก *</label>
+                <input type="text" id="f-title" placeholder="เช่น พระครูวิมลธรรมวิจิตร, พระมหาธวัชชัย" required>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-firstname">ชื่อจริง *</label>
+                  <input type="text" id="f-firstname" placeholder="เช่น สุรเดช" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-lastname">นามสกุล *</label>
+                  <input type="text" id="f-lastname" placeholder="เช่น ธมฺมรโต" required>
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-chaya">ฉายา (บาลี) *</label>
+                  <input type="text" id="f-chaya" placeholder="เช่น ธมฺมรโต, ปญฺญาพโล" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-nickname">ชื่อเล่น</label>
+                  <input type="text" id="f-nickname" placeholder="เช่น หลวงพี่เดช">
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-idcard">เลขบัตรประชาชน *</label>
+                  <input type="text" id="f-idcard" placeholder="เช่น 3-1402-xxxxx-33-4" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-birthdate">วันเดือนปีเกิด *</label>
+                  <input type="text" id="f-birthdate" placeholder="เช่น 8 กันยายน 2511" required>
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-phone">เบอร์โทรศัพท์ติดต่อ *</label>
+                  <input type="text" id="f-phone" placeholder="เช่น 084-567-xxxx" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-lineid">Line ID</label>
+                  <input type="text" id="f-lineid" placeholder="เช่น suradech.vml">
+                </div>
+              </div>
+              <div class="form-grid-3">
+                <div class="form-group-item">
+                  <label for="f-education">การศึกษาทางโลก *</label>
+                  <input type="text" id="f-education" placeholder="เช่น ปริญญาตรี (สังคมศาสตร์)" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-dhamma">การศึกษาทางธรรม *</label>
+                  <select id="f-dhamma" required>
+                    <option value="นักธรรมเอก">นักธรรมเอก</option>
+                    <option value="นักธรรมโท">นักธรรมโท</option>
+                    <option value="นักธรรมตรี">นักธรรมตรี</option>
+                    <option value="ไม่ได้เรียน">ไม่ได้เรียน</option>
+                  </select>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-pali">การศึกษาบาลี *</label>
+                  <select id="f-pali" required>
+                    <option value="ไม่มี">ไม่มีวุฒิบาลี</option>
+                    <option value="เปรียญธรรม 3 ประโยค">ป.ธ.3</option>
+                    <option value="เปรียญธรรม 4 ประโยค">ป.ธ.4</option>
+                    <option value="เปรียญธรรม 5 ประโยค">ป.ธ.5</option>
+                    <option value="เปรียญธรรม 6 ประโยค">ป.ธ.6</option>
+                    <option value="เปรียญธรรม 7 ประโยค">ป.ธ.7</option>
+                    <option value="เปรียญธรรม 8 ประโยค">ป.ธ.8</option>
+                    <option value="เปรียญธรรม 9 ประโยค">ป.ธ.9</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Tab 2: Ordination -->
+          <div class="form-tab-content-panel hidden" id="form-tab-ordination">
+            <div class="form-grid">
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-orddate">วันเดือนปี อุปสมบท *</label>
+                  <input type="text" id="f-orddate" placeholder="เช่น 15 มิถุนายน 2532" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-upajjhaya">พระอุปัชฌาย์ *</label>
+                  <input type="text" id="f-upajjhaya" placeholder="เช่น พระเทพมงคลรังสี วัดมหาธาตุวราราม" required>
+                </div>
+              </div>
+              <div class="form-grid-3">
+                <div class="form-group-item">
+                  <label for="f-vassa">จำนวนพรรษา *</label>
+                  <input type="number" id="f-vassa" placeholder="เช่น 37" required min="0">
+                </div>
+                <div class="form-group-item">
+                  <label for="f-age">อายุ (ปี) *</label>
+                  <input type="number" id="f-age" placeholder="เช่น 58" required min="0">
+                </div>
+                <div class="form-group-item">
+                  <label for="f-region">ภาคปกครองสงฆ์ *</label>
+                  <input type="text" id="f-region" value="ภาค 2" placeholder="เช่น ภาค 2" required>
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-temple-residing">วัดที่จำพรรษาปัจจุบัน *</label>
+                  <input type="text" id="f-temple-residing" placeholder="เช่น วัดราษฎร์บำรุง" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-temple-affiliated">วัดที่สังกัด (สุทธิสงฆ์) *</label>
+                  <input type="text" id="f-temple-affiliated" placeholder="เช่น วัดราษฎร์บำรุง" required>
+                </div>
+              </div>
+              <div class="form-grid-3">
+                <div class="form-group-item">
+                  <label for="f-district">อำเภอที่ตั้งวัด *</label>
+                  <select id="f-district" required>
+                    <option value="">เลือกอำเภอ</option>
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-subdistrict">ตำบลที่ตั้งวัด *</label>
+                  <select id="f-subdistrict" required disabled>
+                    <option value="">เลือกตำบล (เลือกอำเภอก่อน)</option>
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-province">จังหวัด *</label>
+                  <input type="text" id="f-province" value="พระนครศรีอยุธยา" required readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Tab 3: Roles -->
+          <div class="form-tab-content-panel hidden" id="form-tab-role">
+            <div class="form-grid">
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-temple-pos">ตำแหน่งปกครองในวัด *</label>
+                  <select id="f-temple-pos" required>
+                    <option value="เจ้าอาวาส">เจ้าอาวาส</option>
+                    <option value="รองเจ้าอาวาส">รองเจ้าอาวาส</option>
+                    <option value="ผู้ช่วยเจ้าอาวาส">ผู้ช่วยเจ้าอาวาส</option>
+                    <option value="พระลูกวัด">พระลูกวัด</option>
+                  </select>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-sangha-pos">ตำแหน่งปกครองคณะสงฆ์ *</label>
+                  <select id="f-sangha-pos" required>
+                    <option value="ไม่มี">ไม่มีตำแหน่งบริหารปกครอง</option>
+                    <option value="เจ้าคณะจังหวัด">เจ้าคณะจังหวัด</option>
+                    <option value="รองเจ้าคณะจังหวัด">รองเจ้าคณะจังหวัด</option>
+                    <option value="เจ้าคณะอำเภอ">เจ้าคณะอำเภอ</option>
+                    <option value="รองเจ้าคณะอำเภอ">รองเจ้าคณะอำเภอ</option>
+                    <option value="เจ้าคณะตำบล">เจ้าคณะตำบล</option>
+                    <option value="เลขานุการเจ้าคณะจังหวัด">เลขานุการเจ้าคณะจังหวัด</option>
+                    <option value="เลขานุการรองเจ้าคณะจังหวัด">เลขานุการรองเจ้าคณะจังหวัด</option>
+                    <option value="เลขานุการเจ้าคณะอำเภอ">เลขานุการเจ้าคณะอำเภอ</option>
+                    <option value="เลขานุการเจ้าคณะตำบล">เลขานุการเจ้าคณะตำบล</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group-item">
+                  <label for="f-upajjhaya-status">สถานะพระอุปัชฌาย์ *</label>
+                  <select id="f-upajjhaya-status" required>
+                    <option value="ไม่มี">ไม่ใช่พระอุปัชฌาย์</option>
+                    <option value="พระอุปัชฌาย์ประเภทสามัญ">พระอุปัชฌาย์ประเภทสามัญ</option>
+                    <option value="พระอุปัชฌาย์ประเภทวิสามัญ">พระอุปัชฌาย์ประเภทวิสามัญ</option>
+                  </select>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-upajjhaya-code">รหัสพระอุปัชฌาย์ (ถ้ามี)</label>
+                  <input type="text" id="f-upajjhaya-code" placeholder="เช่น UP-1402-004">
+                </div>
+              </div>
+              <div class="form-grid-3">
+                <div class="form-group-item">
+                  <label for="f-rajathinnanam">ราชทินนาม (ถ้ามี)</label>
+                  <input type="text" id="f-rajathinnanam" placeholder="เช่น พระครูวิมลธรรมวิจิตร">
+                </div>
+                <div class="form-group-item">
+                  <label for="f-rankclass">ระดับชั้นสัญญาบัตร/สมณศักดิ์ *</label>
+                  <input type="text" id="f-rankclass" placeholder="เช่น พระครูสัญญาบัตร, พระเปรียญธรรม 7 ประโยค" required>
+                </div>
+                <div class="form-group-item">
+                  <label for="f-faction">ฝ่าย / Faction *</label>
+                  <select id="f-faction" required>
+                    <option value="มหานิกาย">มหานิกาย</option>
+                    <option value="ธรรมยุต">ธรรมยุต</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group-item">
+                <label for="f-other-pos">บทบาทหน้าที่อื่น ๆ (ถ้ามี)</label>
+                <textarea id="f-other-pos" rows="2" placeholder="เช่น พระวิทยากรเผยแผ่ศีลธรรม, ครูสอนพระปริยัติธรรม..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); background-color: var(--bg-tertiary); color: var(--text-primary); font-family: inherit; resize: vertical; outline: none;"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-monk-btn">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ==================== 4. DIALOG MODAL FOR ADD/EDIT TEMPLE ==================== -->
+  <div class="modal-overlay hidden" id="temple-form-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="close-temple-form-btn">
+        <i data-lucide="x"></i>
+      </button>
+      
+      <div class="modal-header-banner" style="height: 60px;"></div>
+      
+      <form id="temple-crud-form">
+        <input type="hidden" id="form-temple-id">
+        
+        <div class="modal-body" style="margin-top: -20px;">
+          <h3 id="form-temple-title" style="margin-bottom: 20px;">เพิ่มรายชื่อวัด</h3>
+          
+          <div class="form-grid" style="display: flex; flex-direction: column; gap: 14px;">
+            <div class="form-group-item">
+              <label for="ft-name">ชื่อวัด *</label>
+              <input type="text" id="ft-name" placeholder="เช่น วัดเกาะแก้ว" required>
+            </div>
+            
+            <div class="form-group-item">
+              <label for="ft-type">ประเภทวัด *</label>
+              <input type="text" id="ft-type" placeholder="เช่น วัดราษฎร์, พระอารามหลวงชั้นโท" required>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group-item">
+                <label for="ft-district">อำเภอที่ตั้ง *</label>
+                <select id="ft-district" required>
+                  <option value="">เลือกอำเภอ</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+              <div class="form-group-item">
+                <label for="ft-subdistrict">ตำบลที่ตั้ง *</label>
+                <select id="ft-subdistrict" required disabled>
+                  <option value="">เลือกตำบล (เลือกอำเภอก่อน)</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group-item">
+              <label for="ft-abbot">ชื่อเจ้าอาวาส / ผู้รักษาการแทน *</label>
+              <input type="text" id="ft-abbot" placeholder="เช่น พระครูสมุทรสังฆกิจ" required>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-temple-btn">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ==================== 5. DIALOG MODAL FOR ADD/EDIT EVENT ==================== -->
+  <div class="modal-overlay hidden" id="event-form-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="close-event-form-btn">
+        <i data-lucide="x"></i>
+      </button>
+      
+      <div class="modal-header-banner" style="height: 60px;"></div>
+      
+      <form id="event-crud-form">
+        <input type="hidden" id="form-event-id">
+        
+        <div class="modal-body" style="margin-top: -20px;">
+          <h3 id="form-event-title" style="margin-bottom: 20px;">เพิ่มกิจกรรมคณะสงฆ์</h3>
+          
+          <div class="form-grid" style="display: flex; flex-direction: column; gap: 14px;">
+            <div class="form-group-item">
+              <label for="fe-title">ชื่อเรื่อง / กิจกรรมสำคัญ *</label>
+              <input type="text" id="fe-title" placeholder="เช่น ประชุมสัมมนาพระสังฆาธิการ" required>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px;">
+              <div class="form-group-item">
+                <label for="fe-date">วันเดือนปีการจัดงาน *</label>
+                <input type="text" id="fe-date" placeholder="เช่น วันเสาร์ที่ 11 กรกฎาคม 2569" required>
+              </div>
+              <div class="form-group-item">
+                <label for="fe-type">ประเภทกิจกรรม *</label>
+                <select id="fe-type" required>
+                  <option value="holy-day">วันพระ / วันสำคัญทางพุทธศาสนา</option>
+                  <option value="meeting">การประชุม / สัมมนาคณะสงฆ์</option>
+                  <option value="training">การจัดโครงการฝึกอบรม</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group-item">
+              <label for="fe-desc">รายละเอียดกิจกรรม *</label>
+              <textarea id="fe-desc" rows="3" placeholder="ระบุเนื้อหารายละเอียดหรือกำหนดการจัดงานย่อ..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); background-color: var(--bg-tertiary); color: var(--text-primary); font-family: inherit; resize: vertical; outline: none;" required></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-event-btn">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- App Script Dependencies -->
+  <script src="data.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
