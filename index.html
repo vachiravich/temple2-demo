@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบข้อมูลทำเนียบคณะสงฆ์ จังหวัดพระนครศรีอยุธยา (ข้อมูลจำลอง)</title>
+  <meta name="description" content="ระบบสารสนเทศจำลองแสดงข้อมูลและสถิติคณะสงฆ์ ตามหัวข้อที่กำหนดในสุทธิสงฆ์และสารสนเทศคณะสงฆ์จังหวัด">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="container header-container">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i data-lucide="dharmachakra"></i>
+        </div>
+        <div class="logo-text">
+          <h1>คณะสงฆ์จังหวัดพระนครศรีอยุธยา</h1>
+          <span class="sub-text">ระบบสารสนเทศและทะเบียนประวัติพระภิกษุ (จำลองตาม Google Sheet)</span>
+        </div>
+      </div>
+      
+      <div class="nav-controls">
+        <button id="theme-toggle" class="btn-icon" aria-label="สลับโหมดสี">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container hero-container">
+      <div class="hero-badge">
+        <i data-lucide="table-properties"></i> เชื่อมโยงโครงสร้างตามฟิลด์ Google Sheet จำลอง
+      </div>
+      <h2 class="hero-title">ระบบทะเบียนประวัติและทำเนียบปกครอง</h2>
+      <p class="hero-desc">
+        สืบค้น ทำเบียนประวัติ และติดตามภารกิจการบริหารการปกครองคณะสงฆ์จังหวัดพระนครศรีอยุธยา ครอบคลุมทั้ง ข้อมูลสุทธิสงฆ์ วิทยฐานะ ตำแหน่งการปกครอง และรายละเอียดสมณศักดิ์
+      </p>
+      
+      <div class="hero-actions">
+        <a href="#hierarchy-section" class="btn btn-primary">
+          <i data-lucide="network"></i> แผนผังปกครองหลัก
+        </a>
+        <a href="#directory-section" class="btn btn-secondary">
+          <i data-lucide="search"></i> ค้นหาทำเนียบพระสงฆ์
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statistics Dashboard -->
+  <section class="stats-section container">
+    <div class="section-title-wrapper text-center">
+      <h3 class="section-subtitle">OVERVIEW</h3>
+      <h2 class="section-title">ข้อมูลสถิติคณะสงฆ์ในจังหวัด</h2>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper amber">
+          <i data-lucide="home"></i>
+        </div>
+        <div class="stat-info">
+          <h4 class="stat-number" id="stat-temples">0</h4>
+          <p class="stat-label">วัดในจังหวัดทั้งหมด</p>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="home"></i></div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon-wrapper orange">
+          <i data-lucide="users"></i>
+        </div>
+        <div class="stat-info">
+          <h4 class="stat-number" id="stat-monks">0</h4>
+          <p class="stat-label">พระภิกษุสามเณร</p>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="users"></i></div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon-wrapper gold">
+          <i data-lucide="graduation-cap"></i>
+        </div>
+        <div class="stat-info">
+          <h4 class="stat-number" id="stat-novices">0</h4>
+          <p class="stat-label">สามเณรสังศึกษา</p>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="graduation-cap"></i></div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon-wrapper yellow">
+          <i data-lucide="map-pin"></i>
+        </div>
+        <div class="stat-info">
+          <h4 class="stat-number" id="stat-districts">0</h4>
+          <p class="stat-label">อำเภอปกครองสงฆ์</p>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="map-pin"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Administrative Hierarchy -->
+  <section id="hierarchy-section" class="hierarchy-section container">
+    <div class="section-title-wrapper">
+      <h3 class="section-subtitle">ADMINISTRATIVE HIERARCHY</h3>
+      <h2 class="section-title">โครงสร้างการบริหารคณะสงฆ์จังหวัด (จำลอง)</h2>
+    </div>
+    
+    <div class="hierarchy-tree-container">
+      <div class="hierarchy-card governor-card" id="governor-node">
+        <div class="loading-placeholder">กำลังโหลดข้อมูล...</div>
+      </div>
+      
+      <div class="hierarchy-connector-vertical"></div>
+      
+      <div class="deputies-row" id="deputies-nodes">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </div>
+    <div class="hierarchy-note text-center">
+      <i data-lucide="info"></i> ท่านสามารถกดคลิกที่โครงสร้างการบริหารด้านบน เพื่อเปิดดูข้อมูลประวัติตามฟิลด์ Google Sheet ได้ทันที
+    </div>
+  </section>
+
+  <!-- Directory Section -->
+  <section id="directory-section" class="directory-section">
+    <div class="container">
+      <div class="section-title-wrapper text-center">
+        <h3 class="section-subtitle">DIRECTORY</h3>
+        <h2 class="section-title">ทำเนียบข้อมูลพระสังฆาธิการ</h2>
+      </div>
+      
+      <!-- Filters and Search Bar -->
+      <div class="filter-panel">
+        <div class="search-input-group">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="search-input" placeholder="ค้นหาด้วย ชื่อ-สกุล, ฉายา, สมณศักดิ์, ชื่อวัด, รหัสอุปัชฌาย์ หรือคำค้นหา...">
+        </div>
+        
+        <div class="select-filters-group">
+          <!-- District -->
+          <div class="select-wrapper">
+            <i data-lucide="map" class="filter-icon"></i>
+            <select id="district-filter">
+              <option value="">ทุกอำเภอปกครอง</option>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          
+          <!-- Subdistrict -->
+          <div class="select-wrapper">
+            <i data-lucide="map-pin" class="filter-icon"></i>
+            <select id="subdistrict-filter" disabled>
+              <option value="">ทุกตำบลปกครอง (เลือกอำเภอก่อน)</option>
+              <!-- Populated dynamically based on district -->
+            </select>
+          </div>
+
+          <!-- Position -->
+          <div class="select-wrapper">
+            <i data-lucide="award" class="filter-icon"></i>
+            <select id="position-filter">
+              <option value="">ทุกตำแหน่งปกครอง</option>
+              <option value="เจ้าคณะจังหวัด">เจ้าคณะจังหวัด</option>
+              <option value="รองเจ้าคณะจังหวัด">รองเจ้าคณะจังหวัด</option>
+              <option value="เจ้าคณะอำเภอ">เจ้าคณะอำเภอ</option>
+              <option value="เจ้าคณะตำบล">เจ้าคณะตำบล</option>
+              <option value="เจ้าอาวาส">เจ้าอาวาส</option>
+              <option value="รองเจ้าอาวาส">รองเจ้าอาวาส</option>
+              <option value="ผู้ช่วยเจ้าอาวาส">ผู้ช่วยเจ้าอาวาส</option>
+              <option value="เลขานุการ">เลขานุการ (ทุกระดับ)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="select-filters-group">
+          <!-- Pali Education -->
+          <div class="select-wrapper">
+            <i data-lucide="graduation-cap" class="filter-icon"></i>
+            <select id="pali-filter">
+              <option value="">ทุกวิทยฐานะบาลี</option>
+              <option value="เปรียญธรรม 9 ประโยค">ป.ธ.9</option>
+              <option value="เปรียญธรรม 7 ประโยค">ป.ธ.7</option>
+              <option value="เปรียญธรรม 6 ประโยค">ป.ธ.6</option>
+              <option value="เปรียญธรรม 4 ประโยค">ป.ธ.4</option>
+              <option value="เปรียญธรรม 3 ประโยค">ป.ธ.3</option>
+              <option value="ไม่มี">ไม่มีวุฒิบาลี</option>
+            </select>
+          </div>
+
+          <!-- Faction -->
+          <div class="select-wrapper">
+            <i data-lucide="tag" class="filter-icon"></i>
+            <select id="faction-filter">
+              <option value="">ทุกนิกาย / ฝ่าย</option>
+              <option value="มหานิกาย">มหานิกาย</option>
+              <option value="ธรรมยุต">ธรรมยุต</option>
+            </select>
+          </div>
+
+          <!-- Upajjhaya -->
+          <div class="select-wrapper">
+            <i data-lucide="shield-alert" class="filter-icon"></i>
+            <select id="upajjhaya-filter">
+              <option value="">สถานะอุปัชฌาย์</option>
+              <option value="พระอุปัชฌาย์ประเภทวิสามัญ">พระอุปัชฌาย์ประเภทวิสามัญ</option>
+              <option value="พระอุปัชฌาย์ประเภทสามัญ">พระอุปัชฌาย์ประเภทสามัญ</option>
+              <option value="ไม่มี">ไม่ใช่พระอุปัชฌาย์</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="reset-filter-container">
+          <button id="reset-filters" class="btn btn-text">ล้างตัวกรองทั้งหมด</button>
+        </div>
+      </div>
+
+      <!-- Results stats -->
+      <div class="results-meta">
+        <p>พบข้อมูลทำเนียบคณะสงฆ์ <span id="results-count">0</span> รูป</p>
+      </div>
+      
+      <!-- Monk Grid Container -->
+      <div class="monk-grid" id="monks-grid">
+        <!-- Cards loaded dynamically -->
+      </div>
+      
+      <!-- Empty state -->
+      <div class="empty-state hidden" id="empty-state">
+        <i data-lucide="users-round" class="empty-icon"></i>
+        <h3>ไม่พบข้อมูลพระสงฆ์ที่ค้นหา</h3>
+        <p>ไม่มีรายชื่อพระภิกษุสงฆ์ตามเงื่อนไขที่กรองไว้ รบกวนคลิกล้างตัวกรองเพื่อเริ่มค้นหาใหม่</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Events Calendar -->
+  <section class="events-section container">
+    <div class="events-layout">
+      <!-- Calendar info -->
+      <div class="events-info-pane">
+        <div class="section-title-wrapper">
+          <h3 class="section-subtitle">ACTIVITIES</h3>
+          <h2 class="section-title">กำหนดการปฏิทินธรรมจังหวัด</h2>
+          <p class="section-desc">
+            ศูนย์กลางการติดตามความเคลื่อนไหว กิจกรรมการประชุมพระสังฆาธิการ และกิจกรรมทางพระพุทธศาสนาหลักระดับจังหวัด
+          </p>
+        </div>
+        
+        <div class="quick-temples-card">
+          <h4><i data-lucide="home"></i> พระอารามหลวงในเขตจังหวัด (จำลอง)</h4>
+          <ul class="temple-list-quick">
+            <li><strong>วัดพนัญเชิงวรวิหาร</strong> - ต.คลองสวนพลู (มหานิกาย)</li>
+            <li><strong>วัดกษัตราธิราชวรวิหาร</strong> - ต.บ้านป้อม (มหานิกาย)</li>
+            <li><strong>วัดสุวรรณดารารามราชวรวิหาร</strong> - ต.หอรัตนไชย (มหานิกาย)</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Events list -->
+      <div class="events-list-pane" id="events-list-container">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Detailed Modal for Monk Detail (Aligned with Sheet Schema) -->
+  <div class="modal-overlay hidden" id="monk-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="close-modal-btn">
+        <i data-lucide="x"></i>
+      </button>
+      
+      <div class="modal-header-banner" id="modal-banner"></div>
+      
+      <div class="modal-body">
+        <div class="modal-avatar-area">
+          <div class="modal-avatar" id="modal-avatar">
+            <i data-lucide="user"></i>
+          </div>
+          <div class="modal-title-info">
+            <h3 id="modal-name">พระธรรมรัตนมงคล (แฉล้ม เขมปญฺโญ)</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+              <span class="badge badge-primary" id="modal-badge-sangha-pos">เจ้าคณะจังหวัด</span>
+              <span class="badge badge-secondary" id="modal-badge-faction">มหานิกาย</span>
+              <span class="badge badge-secondary" id="modal-badge-pali">ป.ธ.6</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <!-- Tabs inside Modal for organization -->
+          <div class="modal-tabs" style="display:flex; border-bottom:1px solid var(--border-light); margin-bottom:20px; gap:16px;">
+            <button class="modal-tab-btn active" onclick="switchModalTab('general')" style="background:none; border:none; color:var(--accent-gold); border-bottom:2px solid var(--accent-gold); padding:8px 0; font-family:inherit; font-weight:600; cursor:pointer;">ข้อมูลส่วนตัว</button>
+            <button class="modal-tab-btn" onclick="switchModalTab('ordination')" style="background:none; border:none; color:var(--text-secondary); padding:8px 0; font-family:inherit; cursor:pointer;">ข้อมูลสุทธิสงฆ์</button>
+            <button class="modal-tab-btn" onclick="switchModalTab('positions')" style="background:none; border:none; color:var(--text-secondary); padding:8px 0; font-family:inherit; cursor:pointer;">ตำแหน่ง & บทบาท</button>
+          </div>
+
+          <!-- Tab Content: General -->
+          <div class="modal-tab-content" id="tab-general">
+            <div class="modal-info-grid">
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="tag"></i> คำนำหน้า/สมณศักดิ์</span>
+                <span class="info-value" id="modal-title-rank">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="user-check"></i> นามฉายา</span>
+                <span class="info-value" id="modal-chaya">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="smile"></i> ชื่อเล่น</span>
+                <span class="info-value" id="modal-nickname">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="credit-card"></i> เลขบัตรประชาชน</span>
+                <span class="info-value" id="modal-idcard">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="calendar"></i> วันเดือนปี เกิด (อายุ)</span>
+                <span class="info-value" id="modal-birth-date">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="graduation-cap"></i> การศึกษาทางโลก</span>
+                <span class="info-value" id="modal-general-edu">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="book-open"></i> นักธรรม</span>
+                <span class="info-value" id="modal-dhamma-edu">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="award"></i> เปรียญธรรม / บาลี</span>
+                <span class="info-value" id="modal-pali-edu">-</span>
+              </div>
+            </div>
+            
+            <div class="modal-divider"></div>
+            
+            <div class="modal-contact-section">
+              <h4><i data-lucide="phone"></i> ช่องทางการติดต่อ</h4>
+              <div style="display:flex; flex-wrap:wrap; gap:16px; margin-top:8px;">
+                <div class="phone-link">
+                  <i data-lucide="phone-call"></i> โทร: <span id="modal-phone">-</span>
+                </div>
+                <div class="phone-link" style="background-color:rgba(34, 197, 94, 0.08); color:#22c55e;">
+                  <i data-lucide="message-square"></i> Line ID: <span id="modal-lineid">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Content: Ordination -->
+          <div class="modal-tab-content hidden" id="tab-ordination">
+            <div class="modal-info-grid">
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="calendar-plus"></i> วันอุปสมบท</span>
+                <span class="info-value" id="modal-ord-date">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="users-2"></i> พระอุปัชฌาย์</span>
+                <span class="info-value" id="modal-ord-upajjhaya">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="activity"></i> จำนวนพรรษา</span>
+                <span class="info-value" id="modal-vassa">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="home"></i> วัดที่สังกัด / จำพรรษา</span>
+                <span class="info-value" id="modal-temples-info">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="map-pin"></i> ตำบลปกครอง</span>
+                <span class="info-value" id="modal-subdist">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="map"></i> อำเภอ / จังหวัด / ภาค</span>
+                <span class="info-value" id="modal-geo-region">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Content: Positions -->
+          <div class="modal-tab-content hidden" id="tab-positions">
+            <div class="modal-info-grid">
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="home"></i> ตำแหน่งปกครองในวัด</span>
+                <span class="info-value" id="modal-temple-pos">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="network"></i> ตำแหน่งปกครองคณะสงฆ์</span>
+                <span class="info-value" id="modal-sangha-pos">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="shield-check"></i> สถานะพระอุปัชฌาย์</span>
+                <span class="info-value" id="modal-upajjhaya-status">-</span>
+              </div>
+              <div class="modal-info-item">
+                <span class="info-label"><i data-lucide="key-round"></i> รหัสพระอุปัชฌาย์</span>
+                <span class="info-value" id="modal-upajjhaya-code">-</span>
+              </div>
+            </div>
+            
+            <div class="modal-divider"></div>
+            
+            <div class="modal-bio-section">
+              <h4><i data-lucide="briefcase"></i> บทบาทหน้าที่อื่น ๆ</h4>
+              <p id="modal-other-pos">-</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="modal-close-action">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <i data-lucide="dharmachakra"></i>
+          <span>คณะสงฆ์จังหวัดพระนครศรีอยุธยา</span>
+        </div>
+        <p class="footer-disclaimer">
+          เว็บไซต์นี้เป็นระบบจำลองข้อมูลประวัติทำเนียบคณะสงฆ์ เพื่อสาธิตการใช้งาน UI ตามโครงสร้างฐานข้อมูลจำลอง (Demo) ข้อมูลทั้งหมดเป็นเพียงสถานการณ์จำลองเพื่อความเสมือนจริง ไม่มีการเก็บข้อมูลของบุคคลจริงเข้าสู่ระบบคลาวด์หรือฐานข้อมูลจริง
+        </p>
+      </div>
+      
+      <div class="footer-links">
+        <h4>ลิงก์เชื่อมโยง (จำลอง)</h4>
+        <ul>
+          <li><a href="#"><i data-lucide="globe"></i> สำนักงานพระพุทธศาสนาแห่งชาติ</a></li>
+          <li><a href="#"><i data-lucide="globe"></i> มหาเถรสมาคม</a></li>
+          <li><a href="#"><i data-lucide="globe"></i> มหาวิทยาลัยมหาจุฬาลงกรณราชวิทยาลัย</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-flex">
+        <p>&copy; 2026 ระบบสารสนเทศทะเบียนปกครองคณะสงฆ์จังหวัดพระนครศรีอยุธยา (Demo)</p>
+        <div class="git-status">
+          <i data-lucide="github"></i> Hosted on GitHub Pages
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Script Dependencies -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
