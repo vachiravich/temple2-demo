@@ -70,7 +70,7 @@ const INITIAL_SANGHA_DATA = {
   monks: [
     {
       id: "monk-01",
-      image: "https://www.sangkhatikan.com/img/42903514520171021_121427.jpg",
+      image: "",
       title: "พระธรรมรัตนมงคล",
       firstName: "แฉล้ม",
       lastName: "เขมปญฺโญ",
@@ -103,7 +103,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-02",
-      image: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระราชพัฒนาภรณ์",
       firstName: "สมชาย",
       lastName: "เกสโร",
@@ -136,7 +136,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-03",
-      image: "https://images.unsplash.com/photo-1609137144813-7d9921338f24?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระศรีปริยัติเมธี",
       firstName: "สมพงษ์",
       lastName: "สุตาลงฺกprocessing",
@@ -169,7 +169,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-04",
-      image: "https://images.unsplash.com/photo-1590073844006-33379778ae09?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระครูวิมลธรรมวิจิตร",
       firstName: "สุรเดช",
       lastName: "ธมฺมรโต",
@@ -202,7 +202,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-05",
-      image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระครูสิริปัญญากร",
       firstName: "บุญมี",
       lastName: "ญาณวโร",
@@ -235,7 +235,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-06",
-      image: "https://images.unsplash.com/photo-1509021436469-17691784fbe4?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระครูเกษมศีลคุณ",
       firstName: "วิชัย",
       lastName: "เขมธโร",
@@ -268,7 +268,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-07",
-      image: "https://images.unsplash.com/photo-1519817650390-64a93db51149?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระครูพิพัฒน์สารธรรม",
       firstName: "สมชาย",
       lastName: "สารโธ",
@@ -301,7 +301,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-08",
-      image: "https://images.unsplash.com/photo-1508672019048-805479767372?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระมหาธวัชชัย",
       firstName: "ธวัชชัย",
       lastName: "ชยาภินนฺโท",
@@ -334,7 +334,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-09",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระครูสังฆรักษ์ธีรยุทธ",
       firstName: "ธีรยุทธ",
       lastName: "ขนฺติธโร",
@@ -367,7 +367,7 @@ const INITIAL_SANGHA_DATA = {
     },
     {
       id: "monk-10",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+      image: "",
       title: "พระสมุห์อรรถพล",
       firstName: "อรรถพล",
       lastName: "กิตฺติปาโล",
@@ -442,7 +442,7 @@ const INITIAL_SANGHA_DATA = {
 };
 
 // ตรวจสอบและเริ่มต้นข้อมูลใน LocalStorage (พร้อมระบบ Auto-Update Version)
-const CURRENT_DB_VERSION = "1.3.0";
+const CURRENT_DB_VERSION = "1.4.0";
 const savedVersion = localStorage.getItem("SANGHA_DB_VERSION");
 
 if (!localStorage.getItem("SANGHA_DATABASE") || savedVersion !== CURRENT_DB_VERSION) {
