@@ -280,11 +280,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (!contactInfo) contactInfo = "ไม่ระบุ";
 
+        // แสดงรูปภาพหากมี หรือไอคอนย่อหากไม่มีรูป
+        let avatarHTML = `<span>${initials || "พ"}</span>`;
+        if (monk.image) {
+          avatarHTML = `<img src="${monk.image}" alt="${monk.title}" onerror="this.outerHTML='<span>${initials || "พ"}</span>'">`;
+        }
+
         card.innerHTML = `
           <div class="card-content">
             <div class="card-top">
-              <div class="card-avatar">
-                <span>${initials || "พ"}</span>
+              <div class="card-avatar" title="คลิกเพื่อดูรูปใหญ่">
+                ${avatarHTML}
               </div>
               <div class="card-title-info">
                 <h4>${monk.title}</h4>
@@ -322,6 +328,16 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
 
+        // Click Avatar to view Large Lightbox Image
+        const avatarBtn = card.querySelector(".card-avatar");
+        avatarBtn.addEventListener("click", () => {
+          if (monk.image) {
+            openImageLightbox(monk.image, `${monk.title} (${monk.firstName} ${monk.chaya})`);
+          } else {
+            openMonkModal(monk);
+          }
+        });
+
         // Click Details Button
         const detailBtn = card.querySelector(".btn-sm-action");
         detailBtn.addEventListener("click", () => {
@@ -353,10 +369,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modal-badge-faction").textContent = monk.faction;
     document.getElementById("modal-badge-pali").textContent = monk.paliEducation !== "ไม่มี" ? monk.paliEducation : monk.dhammaEducation;
 
-    // Set Avatar Initials
+    // Set Avatar Image / Initials
     const avatarEl = document.getElementById("modal-avatar");
     if (avatarEl) {
-      avatarEl.innerHTML = `<span>${initials || "พ"}</span>`;
+      if (monk.image) {
+        avatarEl.innerHTML = `<img src="${monk.image}" alt="${monk.title}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; cursor:pointer;" onerror="this.outerHTML='<span>${initials || "พ"}</span>'">`;
+        avatarEl.onclick = () => openImageLightbox(monk.image, `${monk.title} (${monk.firstName} ${monk.chaya})`);
+      } else {
+        avatarEl.innerHTML = `<span>${initials || "พ"}</span>`;
+        avatarEl.onclick = null;
+      }
     }
 
     // Tab 1: General Info
@@ -448,4 +470,48 @@ document.addEventListener("DOMContentLoaded", () => {
       activeBtn.style.fontWeight = "600";
     }
   };
+
+  // 9. Image Lightbox Preview Functions
+  window.openImageLightbox = function(imgUrl, captionText) {
+    const lightbox = document.getElementById("image-lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxCaption = document.getElementById("lightbox-caption");
+    if (!lightbox || !lightboxImg) return;
+
+    lightboxImg.src = imgUrl;
+    lightboxCaption.textContent = captionText || "";
+    lightbox.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    if (typeof lucide !== "undefined") {
+      lucide.createIcons();
+    }
+  };
+
+  function closeImageLightbox() {
+    const lightbox = document.getElementById("image-lightbox");
+    if (lightbox) {
+      lightbox.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  }
+
+  const closeLightboxBtn = document.getElementById("close-lightbox-btn");
+  const lightboxOverlay = document.getElementById("image-lightbox");
+
+  if (closeLightboxBtn) closeLightboxBtn.addEventListener("click", closeImageLightbox);
+  if (lightboxOverlay) {
+    lightboxOverlay.addEventListener("click", (e) => {
+      if (e.target === lightboxOverlay) {
+        closeImageLightbox();
+      }
+    });
+  }
+
+  // Keyboard Close ESC for Lightbox
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lightboxOverlay && lightboxOverlay.classList.contains("active")) {
+      closeImageLightbox();
+    }
+  });
 });
