@@ -442,7 +442,7 @@ const INITIAL_SANGHA_DATA = {
 };
 
 // ตรวจสอบและเริ่มต้นข้อมูลใน LocalStorage (พร้อมระบบ Auto-Update Version)
-const CURRENT_DB_VERSION = "1.1.0";
+const CURRENT_DB_VERSION = "1.2.0";
 const savedVersion = localStorage.getItem("SANGHA_DB_VERSION");
 
 if (!localStorage.getItem("SANGHA_DATABASE") || savedVersion !== CURRENT_DB_VERSION) {

@@ -287,11 +287,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span>${initials || "พ"}</span>
               </div>
               <div class="card-title-info">
-                <h4>${monk.title} (${monk.chaya})</h4>
+                <h4>${monk.title}</h4>
                 <span class="badge badge-primary">${positionBadge}</span>
                 <div class="monk-real-name-tag" style="font-size: 13px; color: var(--text-secondary); margin-top: 2px; display: flex; align-items: center; gap: 4px;">
                   <i data-lucide="user-check" style="width: 14px; height: 14px; color: var(--accent-gold); flex-shrink: 0;"></i>
-                  <span>ชื่อ-ฉายาจริง: <strong style="color: var(--text-primary);">${monk.firstName} (${monk.chaya})</strong></span>
+                  <span><strong style="color: var(--text-primary);">${monk.firstName} ${monk.chaya}</strong></span>
                 </div>
               </div>
             </div>
@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
               <div class="detail-row">
                 <i data-lucide="phone"></i>
-                <span>ติดต่อ: <strong>${contactInfo}</strong></span>
+                <span><strong>${contactInfo}</strong></span>
               </div>
             </div>
           </div>
