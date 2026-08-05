@@ -274,7 +274,11 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // กำหนดป้ายแสดงสถานะ
         let positionBadge = monk.sanghaPosition !== "ไม่มี" ? monk.sanghaPosition : monk.templePosition;
-        let secondaryBadge = monk.rajathinnanam || monk.rankClass || monk.paliEducation;
+        let contactInfo = monk.phone ? `โทร: ${monk.phone}` : "";
+        if (monk.lineId) {
+          contactInfo += contactInfo ? ` | Line: ${monk.lineId}` : `Line: ${monk.lineId}`;
+        }
+        if (!contactInfo) contactInfo = "ไม่ระบุ";
 
         card.innerHTML = `
           <div class="card-content">
@@ -285,7 +289,10 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="card-title-info">
                 <h4>${monk.title} (${monk.chaya})</h4>
                 <span class="badge badge-primary">${positionBadge}</span>
-                <span class="badge badge-secondary">${secondaryBadge}</span>
+                <div class="monk-real-name-tag" style="font-size: 13px; color: var(--text-secondary); margin-top: 2px; display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="user-check" style="width: 14px; height: 14px; color: var(--accent-gold); flex-shrink: 0;"></i>
+                  <span>ชื่อ-ฉายาจริง: <strong style="color: var(--text-primary);">${monk.firstName} (${monk.chaya})</strong></span>
+                </div>
               </div>
             </div>
             <div class="card-details">
@@ -300,6 +307,10 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="detail-row">
                 <i data-lucide="award"></i>
                 <span>การศึกษา: ${monk.dhammaEducation} / ${monk.paliEducation}</span>
+              </div>
+              <div class="detail-row">
+                <i data-lucide="phone"></i>
+                <span>ติดต่อ: <strong>${contactInfo}</strong></span>
               </div>
             </div>
           </div>
