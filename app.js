@@ -3,15 +3,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   const isGitHubPages = window.location.hostname.endsWith("github.io");
 
   if (isGitHubPages) {
-    // โหมด GitHub Pages: อ่านเขียนจาก localStorage (ใช้ data.js เป็นค่าตั้งต้น)
+    // โหมด GitHub Pages: อ่านเขียนจาก localStorage (ดึงข้อมูลจริงจาก data.json เป็นค่าตั้งต้น)
     console.log("Running in Static Demo Mode on GitHub Pages");
-    if (!localStorage.getItem("SANGHA_DATABASE") && typeof INITIAL_SANGHA_DATA !== "undefined") {
-      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(INITIAL_SANGHA_DATA));
+    if (!localStorage.getItem("SANGHA_DATABASE")) {
+      try {
+        const response = await fetch('data.json');
+        const result = await response.json();
+        if (result.status === 'success') {
+          localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result));
+        }
+      } catch (err) {
+        console.error("Failed to fetch static data.json", err);
+      }
     }
+
     try {
-      SANGHA_DATA = JSON.parse(localStorage.getItem("SANGHA_DATABASE")) || INITIAL_SANGHA_DATA;
+      SANGHA_DATA = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
     } catch (e) {
-      SANGHA_DATA = typeof INITIAL_SANGHA_DATA !== "undefined" ? INITIAL_SANGHA_DATA : null;
+      console.error(e);
+    }
+
+    // กรณีไม่มีข้อมูลจริงในบราวเซอร์และโหลด data.json ไม่สำเร็จ ให้ใช้ข้อมูลดิบจาก data.js
+    if (!SANGHA_DATA && typeof INITIAL_SANGHA_DATA !== "undefined") {
+      SANGHA_DATA = INITIAL_SANGHA_DATA;
     }
     
     // แสดง Badge แจ้งเตือนสถานะเดโม่บนหัวข้อหลัก

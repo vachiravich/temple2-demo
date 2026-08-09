@@ -116,13 +116,24 @@ document.addEventListener("DOMContentLoaded", () => {
     let sanghaDb;
     if (isGitHubPages) {
       console.log("Admin Back-office running in Static Demo Mode on GitHub Pages");
-      if (!localStorage.getItem("SANGHA_DATABASE") && typeof INITIAL_SANGHA_DATA !== "undefined") {
-        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(INITIAL_SANGHA_DATA));
+      if (!localStorage.getItem("SANGHA_DATABASE")) {
+        try {
+          const response = await fetch('data.json');
+          const result = await response.json();
+          if (result.status === 'success') {
+            localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result));
+          }
+        } catch (err) {
+          console.error("Failed to fetch static data.json", err);
+        }
       }
       try {
-        sanghaDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE")) || INITIAL_SANGHA_DATA;
+        sanghaDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
       } catch (e) {
-        sanghaDb = typeof INITIAL_SANGHA_DATA !== "undefined" ? INITIAL_SANGHA_DATA : null;
+        console.error(e);
+      }
+      if (!sanghaDb && typeof INITIAL_SANGHA_DATA !== "undefined") {
+        sanghaDb = INITIAL_SANGHA_DATA;
       }
       
       // แสดงป้ายบอกสถานะ GitHub Pages บนแผงแอดมิน
