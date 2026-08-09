@@ -1,5 +1,7 @@
-// ระบบควบคุมหลังบ้าน เชื่อมต่อฐานข้อมูลจริง MySQL ผ่าน PHP (Admin Back-office Engine)
+// ระบบควบคุมหลังบ้าน รองรับทั้งฐานข้อมูลจริง MySQL (ผ่าน PHP) และโหมด GitHub Pages (localStorage)
 document.addEventListener("DOMContentLoaded", () => {
+  const isGitHubPages = window.location.hostname.endsWith("github.io");
+
   // 1. Initial Lucide Icons
   if (typeof lucide !== "undefined") {
     lucide.createIcons();
@@ -110,21 +112,50 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // 2. Fetch Data from PHP API
+    // 2. Fetch Data (Depending on Environment)
     let sanghaDb;
-    try {
-      const response = await fetch('api_get_data.php');
-      const result = await response.json();
-      if (result.status === 'success') {
-        sanghaDb = result;
-      } else {
-        alert("ไม่สามารถดึงข้อมูลจากระบบได้: " + result.message);
+    if (isGitHubPages) {
+      console.log("Admin Back-office running in Static Demo Mode on GitHub Pages");
+      if (!localStorage.getItem("SANGHA_DATABASE") && typeof INITIAL_SANGHA_DATA !== "undefined") {
+        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(INITIAL_SANGHA_DATA));
+      }
+      try {
+        sanghaDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE")) || INITIAL_SANGHA_DATA;
+      } catch (e) {
+        sanghaDb = typeof INITIAL_SANGHA_DATA !== "undefined" ? INITIAL_SANGHA_DATA : null;
+      }
+      
+      // แสดงป้ายบอกสถานะ GitHub Pages บนแผงแอดมิน
+      const statusTitle = document.getElementById("current-panel-title");
+      if (statusTitle && !statusTitle.querySelector(".badge-demo")) {
+        const b = document.createElement("span");
+        b.className = "badge-demo";
+        b.textContent = "โหมดจำลอง (Static Demo)";
+        b.style.fontSize = "11px";
+        b.style.background = "rgba(245, 158, 11, 0.2)";
+        b.style.color = "#f59e0b";
+        b.style.padding = "2px 8px";
+        b.style.marginLeft = "10px";
+        b.style.borderRadius = "4px";
+        b.style.display = "inline-block";
+        statusTitle.appendChild(b);
+      }
+    } else {
+      // โหมดฐานข้อมูลจริง (PHP Backend)
+      try {
+        const response = await fetch('api_get_data.php');
+        const result = await response.json();
+        if (result.status === 'success') {
+          sanghaDb = result;
+        } else {
+          alert("ไม่สามารถดึงข้อมูลจากระบบได้: " + result.message);
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+        alert("เกิดข้อผิดพลาดในการต่อเชื่อม API หลังบ้าน");
         return;
       }
-    } catch (e) {
-      console.error(e);
-      alert("เกิดข้อผิดพลาดในการต่อเชื่อม API หลังบ้าน");
-      return;
     }
 
     // Expose database globally so edit hooks can read it
@@ -166,22 +197,28 @@ document.addEventListener("DOMContentLoaded", () => {
   if (resetBtn && !resetBtn.dataset.bound) {
     resetBtn.dataset.bound = "true";
     resetBtn.addEventListener("click", async () => {
-      if (confirm("คุณต้องการล้างข้อมูลและเริ่มต้นฐานข้อมูลนำเข้าจาก Excel ใหม่ทั้งหมดใช่หรือไม่?")) {
-        try {
-          const res = await fetch('api_manage.php?action=reset_db', { method: 'POST' });
-          const r = await res.json();
-          alert(r.message);
-          if (r.status === 'success') {
-            window.location.reload();
+      if (confirm("คุณต้องการล้างข้อมูลและเริ่มต้นฐานข้อมูลใหม่ทั้งหมดใช่หรือไม่?")) {
+        if (isGitHubPages) {
+          localStorage.removeItem("SANGHA_DATABASE");
+          alert("รีเซ็ตระบบจำลองของเว็บบราวเซอร์เรียบร้อยแล้ว");
+          window.location.reload();
+        } else {
+          try {
+            const res = await fetch('api_manage.php?action=reset_db', { method: 'POST' });
+            const r = await res.json();
+            alert(r.message);
+            if (r.status === 'success') {
+              window.location.reload();
+            }
+          } catch (e) {
+            alert("ไม่สามารถรีเซ็ตฐานข้อมูลได้: " + e.message);
           }
-        } catch (e) {
-          alert("ไม่สามารถรีเซ็ตฐานข้อมูลได้: " + e.message);
         }
       }
     });
   }
 
-  // ==================== CRUD HOOKS & CONTROLLERS (Global definitions to avoid rebinding) ====================
+  // ==================== CRUD HOOKS & CONTROLLERS ====================
   const monkModal = document.getElementById("monk-form-modal");
   const monkForm = document.getElementById("monk-crud-form");
   const templeModal = document.getElementById("temple-form-modal");
@@ -269,20 +306,37 @@ document.addEventListener("DOMContentLoaded", () => {
         paliEducation: document.getElementById("f-pali").value
       };
 
-      try {
-        const response = await fetch('api_manage.php?action=save_monk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newMonkData)
-        });
-        const r = await response.json();
-        alert(r.message);
-        if (r.status === 'success') {
-          closeMonkForm();
-          initializeDashboard();
+      if (isGitHubPages) {
+        const currentDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE")) || INITIAL_SANGHA_DATA;
+        if (monkId) {
+          const idx = currentDb.monks.findIndex(m => m.id == monkId);
+          if (idx !== -1) {
+            currentDb.monks[idx] = { ...newMonkData, id: monkId };
+          }
+        } else {
+          newMonkData.id = "monk-" + Date.now();
+          currentDb.monks.push(newMonkData);
         }
-      } catch (err) {
-        alert("ไม่สามารถบันทึกข้อมูลพระสงฆ์ได้: " + err.message);
+        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
+        alert("บันทึกข้อมูลพระสงฆ์เรียบร้อยแล้ว (บราวเซอร์)");
+        closeMonkForm();
+        initializeDashboard();
+      } else {
+        try {
+          const response = await fetch('api_manage.php?action=save_monk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newMonkData)
+          });
+          const r = await response.json();
+          alert(r.message);
+          if (r.status === 'success') {
+            closeMonkForm();
+            initializeDashboard();
+          }
+        } catch (err) {
+          alert("ไม่สามารถบันทึกข้อมูลพระสงฆ์ได้: " + err.message);
+        }
       }
     });
   }
@@ -338,20 +392,37 @@ document.addEventListener("DOMContentLoaded", () => {
         abbot: document.getElementById("ft-abbot").value.trim()
       };
 
-      try {
-        const response = await fetch('api_manage.php?action=save_temple', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newTempleData)
-        });
-        const r = await response.json();
-        alert(r.message);
-        if (r.status === 'success') {
-          closeTempleForm();
-          initializeDashboard();
+      if (isGitHubPages) {
+        const currentDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE")) || INITIAL_SANGHA_DATA;
+        if (templeId) {
+          const idx = currentDb.temples.findIndex(t => t.id == templeId);
+          if (idx !== -1) {
+            currentDb.temples[idx] = { ...newTempleData, id: templeId };
+          }
+        } else {
+          newTempleData.id = "tmp-" + Date.now();
+          currentDb.temples.push(newTempleData);
         }
-      } catch (err) {
-        alert("ไม่สามารถบันทึกข้อมูลวัดได้: " + err.message);
+        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
+        alert("บันทึกข้อมูลวัดเรียบร้อยแล้ว (บราวเซอร์)");
+        closeTempleForm();
+        initializeDashboard();
+      } else {
+        try {
+          const response = await fetch('api_manage.php?action=save_temple', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newTempleData)
+          });
+          const r = await response.json();
+          alert(r.message);
+          if (r.status === 'success') {
+            closeTempleForm();
+            initializeDashboard();
+          }
+        } catch (err) {
+          alert("ไม่สามารถบันทึกข้อมูลวัดได้: " + err.message);
+        }
       }
     });
   }
@@ -400,20 +471,37 @@ document.addEventListener("DOMContentLoaded", () => {
         description: document.getElementById("fe-desc").value.trim()
       };
 
-      try {
-        const response = await fetch('api_manage.php?action=save_event', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newEventData)
-        });
-        const r = await response.json();
-        alert(r.message);
-        if (r.status === 'success') {
-          closeEventForm();
-          initializeDashboard();
+      if (isGitHubPages) {
+        const currentDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE")) || INITIAL_SANGHA_DATA;
+        if (eventId) {
+          const idx = currentDb.events.findIndex(ev => ev.id == eventId);
+          if (idx !== -1) {
+            currentDb.events[idx] = { ...newEventData, id: eventId };
+          }
+        } else {
+          newEventData.id = "evt-" + Date.now();
+          currentDb.events.push(newEventData);
         }
-      } catch (err) {
-        alert("ไม่สามารถบันทึกกิจกรรมได้: " + err.message);
+        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
+        alert("บันทึกกิจกรรมเรียบร้อยแล้ว (บราวเซอร์)");
+        closeEventForm();
+        initializeDashboard();
+      } else {
+        try {
+          const response = await fetch('api_manage.php?action=save_event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newEventData)
+          });
+          const r = await response.json();
+          alert(r.message);
+          if (r.status === 'success') {
+            closeEventForm();
+            initializeDashboard();
+          }
+        } catch (err) {
+          alert("ไม่สามารถบันทึกกิจกรรมได้: " + err.message);
+        }
       }
     });
   }
@@ -731,19 +819,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!monk) return;
 
     if (confirm(`คุณยืนยันที่จะลบข้อมูลของ ${monk.title} หรือไม่?`)) {
-      try {
-        const response = await fetch('api_manage.php?action=delete_monk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: id })
-        });
-        const r = await response.json();
-        alert(r.message);
-        if (r.status === 'success') {
-          initializeDashboard();
+      if (isGitHubPages) {
+        const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
+        db.monks = db.monks.filter(m => m.id != id);
+        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(db));
+        alert("ลบข้อมูลพระสงฆ์เรียบร้อยแล้ว (บราวเซอร์)");
+        initializeDashboard();
+      } else {
+        try {
+          const response = await fetch('api_manage.php?action=delete_monk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+          });
+          const r = await response.json();
+          alert(r.message);
+          if (r.status === 'success') {
+            initializeDashboard();
+          }
+        } catch (err) {
+          alert("ไม่สามารถลบข้อมูลได้: " + err.message);
         }
-      } catch (err) {
-        alert("ไม่สามารถลบข้อมูลได้: " + err.message);
       }
     }
   }
@@ -776,19 +872,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!temple) return;
 
     if (confirm(`คุณยืนยันที่จะลบวัด ${temple.name} หรือไม่?`)) {
-      try {
-        const response = await fetch('api_manage.php?action=delete_temple', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: id })
-        });
-        const r = await response.json();
-        alert(r.message);
-        if (r.status === 'success') {
-          initializeDashboard();
+      if (isGitHubPages) {
+        const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
+        db.temples = db.temples.filter(t => t.id != id);
+        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(db));
+        alert("ลบข้อมูลวัดเรียบร้อยแล้ว (บราวเซอร์)");
+        initializeDashboard();
+      } else {
+        try {
+          const response = await fetch('api_manage.php?action=delete_temple', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+          });
+          const r = await response.json();
+          alert(r.message);
+          if (r.status === 'success') {
+            initializeDashboard();
+          }
+        } catch (err) {
+          alert("ไม่สามารถลบวัดได้: " + err.message);
         }
-      } catch (err) {
-        alert("ไม่สามารถลบวัดได้: " + err.message);
       }
     }
   }
@@ -815,19 +919,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!evt) return;
 
     if (confirm(`คุณยืนยันที่จะลบกิจกรรม "${evt.title}" หรือไม่?`)) {
-      try {
-        const response = await fetch('api_manage.php?action=delete_event', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: id })
-        });
-        const r = await response.json();
-        alert(r.message);
-        if (r.status === 'success') {
-          initializeDashboard();
+      if (isGitHubPages) {
+        const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
+        db.events = db.events.filter(ev => ev.id != id);
+        localStorage.setItem("SANGHA_DATABASE", JSON.stringify(db));
+        alert("ลบกิจกรรมเรียบร้อยแล้ว (บราวเซอร์)");
+        initializeDashboard();
+      } else {
+        try {
+          const response = await fetch('api_manage.php?action=delete_event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+          });
+          const r = await response.json();
+          alert(r.message);
+          if (r.status === 'success') {
+            initializeDashboard();
+          }
+        } catch (err) {
+          alert("ไม่สามารถลบกิจกรรมได้: " + err.message);
         }
-      } catch (err) {
-        alert("ไม่สามารถลบกิจกรรมได้: " + err.message);
       }
     }
   }

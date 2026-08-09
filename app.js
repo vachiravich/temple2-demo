@@ -1,19 +1,51 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // โหลดข้อมูลจริงผ่าน PHP API
   let SANGHA_DATA;
-  try {
-    const response = await fetch('api_get_data.php');
-    const result = await response.json();
-    if (result.status === 'success') {
-      SANGHA_DATA = result;
-    } else {
-      alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
+  const isGitHubPages = window.location.hostname.endsWith("github.io");
+
+  if (isGitHubPages) {
+    // โหมด GitHub Pages: อ่านเขียนจาก localStorage (ใช้ data.js เป็นค่าตั้งต้น)
+    console.log("Running in Static Demo Mode on GitHub Pages");
+    if (!localStorage.getItem("SANGHA_DATABASE") && typeof INITIAL_SANGHA_DATA !== "undefined") {
+      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(INITIAL_SANGHA_DATA));
+    }
+    try {
+      SANGHA_DATA = JSON.parse(localStorage.getItem("SANGHA_DATABASE")) || INITIAL_SANGHA_DATA;
+    } catch (e) {
+      SANGHA_DATA = typeof INITIAL_SANGHA_DATA !== "undefined" ? INITIAL_SANGHA_DATA : null;
+    }
+    
+    // แสดง Badge แจ้งเตือนสถานะเดโม่บนหัวข้อหลัก
+    const headerTitle = document.querySelector(".header-title p") || document.querySelector(".header-title");
+    if (headerTitle) {
+      const badge = document.createElement("span");
+      badge.textContent = "โหมดจำลอง (GitHub Pages)";
+      badge.style.fontSize = "11px";
+      badge.style.marginLeft = "10px";
+      badge.style.background = "rgba(245, 158, 11, 0.2)";
+      badge.style.color = "#f59e0b";
+      badge.style.border = "1px solid rgba(245, 158, 11, 0.3)";
+      badge.style.padding = "2px 8px";
+      badge.style.borderRadius = "4px";
+      badge.style.verticalAlign = "middle";
+      badge.style.display = "inline-block";
+      headerTitle.appendChild(badge);
+    }
+  } else {
+    // โหมดปกติ (PHP + MySQL Backend)
+    try {
+      const response = await fetch('api_get_data.php');
+      const result = await response.json();
+      if (result.status === 'success') {
+        SANGHA_DATA = result;
+      } else {
+        alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
+        return;
+      }
+    } catch (error) {
+      console.error("Failed to fetch database:", error);
+      alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลคณะสงฆ์ได้");
       return;
     }
-  } catch (error) {
-    console.error("Failed to fetch database:", error);
-    alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลคณะสงฆ์ได้");
-    return;
   }
 
   // เผยแพร่ตัวแปรไปสู่ Global Scope สำหรับฟังก์ชันหน้าต่าง Modal
