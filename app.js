@@ -1,5 +1,24 @@
-// ระบบควบคุมระบบการทำหน้าที่และการกรองข้อมูลคณะสงฆ์ (Demo Logic)
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // โหลดข้อมูลจริงผ่าน PHP API
+  let SANGHA_DATA;
+  try {
+    const response = await fetch('api_get_data.php');
+    const result = await response.json();
+    if (result.status === 'success') {
+      SANGHA_DATA = result;
+    } else {
+      alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
+      return;
+    }
+  } catch (error) {
+    console.error("Failed to fetch database:", error);
+    alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลคณะสงฆ์ได้");
+    return;
+  }
+
+  // เผยแพร่ตัวแปรไปสู่ Global Scope สำหรับฟังก์ชันหน้าต่าง Modal
+  window.SANGHA_DATA = SANGHA_DATA;
+
   // 1. Initial Lucide Icons
   if (typeof lucide !== "undefined") {
     lucide.createIcons();

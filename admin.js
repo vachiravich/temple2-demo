@@ -1,4 +1,4 @@
-// ระบบควบคุมหลังบ้าน (Admin Back-office Engine)
+// ระบบควบคุมหลังบ้าน เชื่อมต่อฐานข้อมูลจริง MySQL ผ่าน PHP (Admin Back-office Engine)
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Initial Lucide Icons
   if (typeof lucide !== "undefined") {
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================== DASHBOARD MANAGEMENT FUNCTIONS ====================
-  function initializeDashboard() {
+  async function initializeDashboard() {
     // 1. Sidebar Tab Switching
     const navItems = document.querySelectorAll(".nav-item");
     const panels = document.querySelectorAll(".admin-panel");
@@ -110,8 +110,25 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // 2. Fetch Data from data.js (which pulls from localStorage)
-    let sanghaDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
+    // 2. Fetch Data from PHP API
+    let sanghaDb;
+    try {
+      const response = await fetch('api_get_data.php');
+      const result = await response.json();
+      if (result.status === 'success') {
+        sanghaDb = result;
+      } else {
+        alert("ไม่สามารถดึงข้อมูลจากระบบได้: " + result.message);
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+      alert("เกิดข้อผิดพลาดในการต่อเชื่อม API หลังบ้าน");
+      return;
+    }
+
+    // Expose database globally so edit hooks can read it
+    window.SANGHA_DATA = sanghaDb;
 
     // 3. Stats update
     updateStatsCounters(sanghaDb);
@@ -126,14 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 6. Init form structures (Cascading selects)
     setupFormCascadingSelects(sanghaDb);
-
-    // 7. Reset DB Hook
-    document.getElementById("reset-db-btn").addEventListener("click", () => {
-      if (confirm("คุณต้องการล้างข้อมูลและเริ่มต้นฐานข้อมูลจำลองใหม่ทั้งหมดใช่หรือไม่? การแก้ไขทั้งหมดจะสูญหายไป")) {
-        localStorage.removeItem("SANGHA_DATABASE");
-        window.location.reload();
-      }
-    });
 
     // 8. Form Tabs Switching (Monk Add/Edit Form Modal)
     const formTabBtns = document.querySelectorAll(".form-tab-btn");
@@ -150,21 +159,47 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById(targetTabId).classList.remove("hidden");
       });
     });
+  }
 
-    // ==================== CRUD HOOKS & CONTROLLERS ====================
-    
-    // ----- A. MONK CRUD -----
-    const monkModal = document.getElementById("monk-form-modal");
-    const monkForm = document.getElementById("monk-crud-form");
-    
-    // Add Monk Btn
-    document.getElementById("add-monk-btn").addEventListener("click", () => {
+  // 7. Reset DB Hook (Defined outside initialize so it doesn't double bind)
+  const resetBtn = document.getElementById("reset-db-btn");
+  if (resetBtn && !resetBtn.dataset.bound) {
+    resetBtn.dataset.bound = "true";
+    resetBtn.addEventListener("click", async () => {
+      if (confirm("คุณต้องการล้างข้อมูลและเริ่มต้นฐานข้อมูลนำเข้าจาก Excel ใหม่ทั้งหมดใช่หรือไม่?")) {
+        try {
+          const res = await fetch('api_manage.php?action=reset_db', { method: 'POST' });
+          const r = await res.json();
+          alert(r.message);
+          if (r.status === 'success') {
+            window.location.reload();
+          }
+        } catch (e) {
+          alert("ไม่สามารถรีเซ็ตฐานข้อมูลได้: " + e.message);
+        }
+      }
+    });
+  }
+
+  // ==================== CRUD HOOKS & CONTROLLERS (Global definitions to avoid rebinding) ====================
+  const monkModal = document.getElementById("monk-form-modal");
+  const monkForm = document.getElementById("monk-crud-form");
+  const templeModal = document.getElementById("temple-form-modal");
+  const templeForm = document.getElementById("temple-crud-form");
+  const eventModal = document.getElementById("event-form-modal");
+  const eventForm = document.getElementById("event-crud-form");
+
+  // Add Monk Btn
+  const addMonkBtn = document.getElementById("add-monk-btn");
+  if (addMonkBtn && !addMonkBtn.dataset.bound) {
+    addMonkBtn.dataset.bound = "true";
+    addMonkBtn.addEventListener("click", () => {
       monkForm.reset();
       document.getElementById("form-monk-id").value = "";
       document.getElementById("form-monk-title").textContent = "เพิ่มข้อมูลพระภิกษุสงฆ์";
       
       // Default to first tab
-      formTabBtns[0].click();
+      document.querySelectorAll(".form-tab-btn")[0].click();
       
       // Reset selects
       document.getElementById("f-district").value = "";
@@ -175,27 +210,34 @@ document.addEventListener("DOMContentLoaded", () => {
       monkModal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
     });
+  }
 
-    // Close Monk Modal
-    document.getElementById("close-monk-form-btn").addEventListener("click", closeMonkForm);
-    document.getElementById("cancel-monk-btn").addEventListener("click", closeMonkForm);
-    
-    function closeMonkForm() {
-      monkModal.classList.add("hidden");
-      document.body.style.overflow = "";
-    }
+  // Close Monk Modal
+  const closeMonkFormBtn = document.getElementById("close-monk-form-btn");
+  if (closeMonkFormBtn && !closeMonkFormBtn.dataset.bound) {
+    closeMonkFormBtn.dataset.bound = "true";
+    closeMonkFormBtn.addEventListener("click", closeMonkForm);
+  }
+  const cancelMonkBtn = document.getElementById("cancel-monk-btn");
+  if (cancelMonkBtn && !cancelMonkBtn.dataset.bound) {
+    cancelMonkBtn.dataset.bound = "true";
+    cancelMonkBtn.addEventListener("click", closeMonkForm);
+  }
+  
+  function closeMonkForm() {
+    monkModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
 
-    // Submit Monk Form (Add/Update)
-    monkForm.addEventListener("submit", (e) => {
+  // Submit Monk Form (Add/Update)
+  if (monkForm && !monkForm.dataset.bound) {
+    monkForm.dataset.bound = "true";
+    monkForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
-      // Read current DB again to prevent stale writes
-      const currentDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
       const monkId = document.getElementById("form-monk-id").value;
-
       const newMonkData = {
-        id: monkId || "monk-" + Date.now(),
-        image: "",
+        id: monkId,
         title: document.getElementById("f-title").value.trim(),
         firstName: document.getElementById("f-firstname").value.trim(),
         lastName: document.getElementById("f-lastname").value.trim(),
@@ -227,31 +269,29 @@ document.addEventListener("DOMContentLoaded", () => {
         paliEducation: document.getElementById("f-pali").value
       };
 
-      if (monkId) {
-        // Update
-        const idx = currentDb.monks.findIndex(m => m.id === monkId);
-        if (idx !== -1) {
-          currentDb.monks[idx] = newMonkData;
+      try {
+        const response = await fetch('api_manage.php?action=save_monk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newMonkData)
+        });
+        const r = await response.json();
+        alert(r.message);
+        if (r.status === 'success') {
+          closeMonkForm();
+          initializeDashboard();
         }
-      } else {
-        // Create
-        currentDb.monks.push(newMonkData);
+      } catch (err) {
+        alert("ไม่สามารถบันทึกข้อมูลพระสงฆ์ได้: " + err.message);
       }
-
-      // Save database
-      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
-      closeMonkForm();
-      
-      // Refresh dashboard
-      initializeDashboard();
     });
+  }
 
-
-    // ----- B. TEMPLE CRUD -----
-    const templeModal = document.getElementById("temple-form-modal");
-    const templeForm = document.getElementById("temple-crud-form");
-
-    document.getElementById("add-temple-btn").addEventListener("click", () => {
+  // Add Temple Btn
+  const addTempleBtn = document.getElementById("add-temple-btn");
+  if (addTempleBtn && !addTempleBtn.dataset.bound) {
+    addTempleBtn.dataset.bound = "true";
+    addTempleBtn.addEventListener("click", () => {
       templeForm.reset();
       document.getElementById("form-temple-id").value = "";
       document.getElementById("form-temple-title").textContent = "เพิ่มรายชื่อวัด";
@@ -265,23 +305,32 @@ document.addEventListener("DOMContentLoaded", () => {
       templeModal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
     });
+  }
 
-    document.getElementById("close-temple-form-btn").addEventListener("click", closeTempleForm);
-    document.getElementById("cancel-temple-btn").addEventListener("click", closeTempleForm);
+  const closeTempleFormBtn = document.getElementById("close-temple-form-btn");
+  if (closeTempleFormBtn && !closeTempleFormBtn.dataset.bound) {
+    closeTempleFormBtn.dataset.bound = "true";
+    closeTempleFormBtn.addEventListener("click", closeTempleForm);
+  }
+  const cancelTempleBtn = document.getElementById("cancel-temple-btn");
+  if (cancelTempleBtn && !cancelTempleBtn.dataset.bound) {
+    cancelTempleBtn.dataset.bound = "true";
+    cancelTempleBtn.addEventListener("click", closeTempleForm);
+  }
 
-    function closeTempleForm() {
-      templeModal.classList.add("hidden");
-      document.body.style.overflow = "";
-    }
+  function closeTempleForm() {
+    templeModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
 
-    templeForm.addEventListener("submit", (e) => {
+  if (templeForm && !templeForm.dataset.bound) {
+    templeForm.dataset.bound = "true";
+    templeForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
-      const currentDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
       const templeId = document.getElementById("form-temple-id").value;
-
       const newTempleData = {
-        id: templeId || "tmp-" + Date.now(),
+        id: templeId,
         name: document.getElementById("ft-name").value.trim(),
         type: document.getElementById("ft-type").value.trim(),
         district: document.getElementById("ft-district").value,
@@ -289,28 +338,29 @@ document.addEventListener("DOMContentLoaded", () => {
         abbot: document.getElementById("ft-abbot").value.trim()
       };
 
-      if (templeId) {
-        // Update
-        const idx = currentDb.temples.findIndex(t => t.id === templeId);
-        if (idx !== -1) {
-          currentDb.temples[idx] = newTempleData;
+      try {
+        const response = await fetch('api_manage.php?action=save_temple', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTempleData)
+        });
+        const r = await response.json();
+        alert(r.message);
+        if (r.status === 'success') {
+          closeTempleForm();
+          initializeDashboard();
         }
-      } else {
-        // Create
-        currentDb.temples.push(newTempleData);
+      } catch (err) {
+        alert("ไม่สามารถบันทึกข้อมูลวัดได้: " + err.message);
       }
-
-      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
-      closeTempleForm();
-      initializeDashboard();
     });
+  }
 
-
-    // ----- C. EVENT CRUD -----
-    const eventModal = document.getElementById("event-form-modal");
-    const eventForm = document.getElementById("event-crud-form");
-
-    document.getElementById("add-event-btn").addEventListener("click", () => {
+  // Add Event Btn
+  const addEventBtn = document.getElementById("add-event-btn");
+  if (addEventBtn && !addEventBtn.dataset.bound) {
+    addEventBtn.dataset.bound = "true";
+    addEventBtn.addEventListener("click", () => {
       eventForm.reset();
       document.getElementById("form-event-id").value = "";
       document.getElementById("form-event-title").textContent = "เพิ่มกิจกรรมคณะสงฆ์";
@@ -318,43 +368,53 @@ document.addEventListener("DOMContentLoaded", () => {
       eventModal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
     });
+  }
 
-    document.getElementById("close-event-form-btn").addEventListener("click", closeEventForm);
-    document.getElementById("cancel-event-btn").addEventListener("click", closeEventForm);
+  const closeEventFormBtn = document.getElementById("close-event-form-btn");
+  if (closeEventFormBtn && !closeEventFormBtn.dataset.bound) {
+    closeEventFormBtn.dataset.bound = "true";
+    closeEventFormBtn.addEventListener("click", closeEventForm);
+  }
+  const cancelEventBtn = document.getElementById("cancel-event-btn");
+  if (cancelEventBtn && !cancelEventBtn.dataset.bound) {
+    cancelEventBtn.dataset.bound = "true";
+    cancelEventBtn.addEventListener("click", closeEventForm);
+  }
 
-    function closeEventForm() {
-      eventModal.classList.add("hidden");
-      document.body.style.overflow = "";
-    }
+  function closeEventForm() {
+    eventModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
 
-    eventForm.addEventListener("submit", (e) => {
+  if (eventForm && !eventForm.dataset.bound) {
+    eventForm.dataset.bound = "true";
+    eventForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
-      const currentDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
       const eventId = document.getElementById("form-event-id").value;
-
       const newEventData = {
-        id: eventId || "evt-" + Date.now(),
+        id: eventId,
         title: document.getElementById("fe-title").value.trim(),
         date: document.getElementById("fe-date").value.trim(),
         type: document.getElementById("fe-type").value,
         description: document.getElementById("fe-desc").value.trim()
       };
 
-      if (eventId) {
-        // Update
-        const idx = currentDb.events.findIndex(ev => ev.id === eventId);
-        if (idx !== -1) {
-          currentDb.events[idx] = newEventData;
+      try {
+        const response = await fetch('api_manage.php?action=save_event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEventData)
+        });
+        const r = await response.json();
+        alert(r.message);
+        if (r.status === 'success') {
+          closeEventForm();
+          initializeDashboard();
         }
-      } else {
-        // Create
-        currentDb.events.push(newEventData);
+      } catch (err) {
+        alert("ไม่สามารถบันทึกกิจกรรมได้: " + err.message);
       }
-
-      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
-      closeEventForm();
-      initializeDashboard();
     });
   }
 
@@ -611,17 +671,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ==================== EDIT/DELETE FUNCTIONS ====================
+  // ==================== EDIT/DELETE ACTIONS (Read/Write via API) ====================
 
   // --- Monk Actions ---
   function editMonkAction(id) {
-    const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-    const monk = db.monks.find(m => m.id === id);
+    const monk = window.SANGHA_DATA.monks.find(m => m.id == id);
     if (!monk) return;
 
-    const form = document.getElementById("monk-crud-form");
-    const monkModal = document.getElementById("monk-form-modal");
-    
     document.getElementById("form-monk-id").value = monk.id;
     document.getElementById("form-monk-title").textContent = "แก้ไขข้อมูลพระภิกษุสงฆ์";
 
@@ -661,36 +717,42 @@ document.addEventListener("DOMContentLoaded", () => {
     districtSelect.value = monk.district;
     
     // Trigger populating subdistricts and select the correct one
-    handleDistrictSelectChange(monk.district, subdistSelect, db);
+    handleDistrictSelectChange(monk.district, subdistSelect, window.SANGHA_DATA);
     subdistSelect.value = monk.subdistrict;
 
     // Display
-    // Switch to first tab in form
     document.querySelectorAll(".form-tab-btn")[0].click();
     monkModal.classList.remove("hidden");
     document.body.style.overflow = "hidden";
   }
 
-  function deleteMonkAction(id) {
-    const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-    const monk = db.monks.find(m => m.id === id);
+  async function deleteMonkAction(id) {
+    const monk = window.SANGHA_DATA.monks.find(m => m.id == id);
     if (!monk) return;
 
-    if (confirm(`คุณยืนยันที่จะลบข้อมูลของ ${monk.title} หรือไม่? การลบแล้วไม่สามารถย้อนกลับได้`)) {
-      db.monks = db.monks.filter(m => m.id !== id);
-      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(db));
-      initializeDashboard();
+    if (confirm(`คุณยืนยันที่จะลบข้อมูลของ ${monk.title} หรือไม่?`)) {
+      try {
+        const response = await fetch('api_manage.php?action=delete_monk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        const r = await response.json();
+        alert(r.message);
+        if (r.status === 'success') {
+          initializeDashboard();
+        }
+      } catch (err) {
+        alert("ไม่สามารถลบข้อมูลได้: " + err.message);
+      }
     }
   }
 
   // --- Temple Actions ---
   function editTempleAction(id) {
-    const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-    const temple = db.temples.find(t => t.id === id);
+    const temple = window.SANGHA_DATA.temples.find(t => t.id == id);
     if (!temple) return;
 
-    const templeModal = document.getElementById("temple-form-modal");
-    
     document.getElementById("form-temple-id").value = temple.id;
     document.getElementById("form-temple-title").textContent = "แก้ไขรายชื่อวัด";
 
@@ -702,32 +764,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const subdistSelect = document.getElementById("ft-subdistrict");
 
     districtSelect.value = temple.district;
-    handleDistrictSelectChange(temple.district, subdistSelect, db);
+    handleDistrictSelectChange(temple.district, subdistSelect, window.SANGHA_DATA);
     subdistSelect.value = temple.subdistrict;
 
     templeModal.classList.remove("hidden");
     document.body.style.overflow = "hidden";
   }
 
-  function deleteTempleAction(id) {
-    const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-    const temple = db.temples.find(t => t.id === id);
+  async function deleteTempleAction(id) {
+    const temple = window.SANGHA_DATA.temples.find(t => t.id == id);
     if (!temple) return;
 
-    if (confirm(`คุณยืนยันที่จะลบวัด ${temple.name} ออกจากระบบฐานข้อมูลจำลองหรือไม่?`)) {
-      db.temples = db.temples.filter(t => t.id !== id);
-      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(db));
-      initializeDashboard();
+    if (confirm(`คุณยืนยันที่จะลบวัด ${temple.name} หรือไม่?`)) {
+      try {
+        const response = await fetch('api_manage.php?action=delete_temple', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        const r = await response.json();
+        alert(r.message);
+        if (r.status === 'success') {
+          initializeDashboard();
+        }
+      } catch (err) {
+        alert("ไม่สามารถลบวัดได้: " + err.message);
+      }
     }
   }
 
   // --- Event Actions ---
   function editEventAction(id) {
-    const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-    const evt = db.events.find(ev => ev.id === id);
+    const evt = window.SANGHA_DATA.events.find(ev => ev.id == id);
     if (!evt) return;
-
-    const eventModal = document.getElementById("event-form-modal");
 
     document.getElementById("form-event-id").value = evt.id;
     document.getElementById("form-event-title").textContent = "แก้ไขกิจกรรมคณะสงฆ์";
@@ -741,15 +810,25 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.style.overflow = "hidden";
   }
 
-  function deleteEventAction(id) {
-    const db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-    const evt = db.events.find(ev => ev.id === id);
+  async function deleteEventAction(id) {
+    const evt = window.SANGHA_DATA.events.find(ev => ev.id == id);
     if (!evt) return;
 
     if (confirm(`คุณยืนยันที่จะลบกิจกรรม "${evt.title}" หรือไม่?`)) {
-      db.events = db.events.filter(ev => ev.id !== id);
-      localStorage.setItem("SANGHA_DATABASE", JSON.stringify(db));
-      initializeDashboard();
+      try {
+        const response = await fetch('api_manage.php?action=delete_event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        const r = await response.json();
+        alert(r.message);
+        if (r.status === 'success') {
+          initializeDashboard();
+        }
+      } catch (err) {
+        alert("ไม่สามารถลบกิจกรรมได้: " + err.message);
+      }
     }
   }
 });
