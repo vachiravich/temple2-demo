@@ -294,8 +294,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // 7. Directory Filter & Search Logic
+  // 7. Directory Filter, Search, Table View & Pagination Logic
   const monksGrid = document.getElementById("monks-grid");
+  const monksTableWrapper = document.getElementById("monks-table-wrapper");
+  const monksTableBody = document.getElementById("monks-table-body");
   const emptyState = document.getElementById("empty-state");
   const resultsCount = document.getElementById("results-count");
   const searchInput = document.getElementById("search-input");
@@ -304,6 +306,59 @@ document.addEventListener("DOMContentLoaded", async () => {
   const factionFilter = document.getElementById("faction-filter");
   const upajjhayaFilter = document.getElementById("upajjhaya-filter");
   const resetFiltersBtn = document.getElementById("reset-filters");
+
+  const viewGridBtn = document.getElementById("view-grid-btn");
+  const viewTableBtn = document.getElementById("view-table-btn");
+  const itemsPerPageSelect = document.getElementById("items-per-page");
+  const paginationContainer = document.getElementById("pagination-container");
+  const paginationInfo = document.getElementById("pagination-info");
+  const paginationControls = document.getElementById("pagination-controls");
+
+  // State Management
+  let currentViewMode = localStorage.getItem("monk_view_mode") || "grid"; // 'grid' | 'table'
+  let currentPage = 1;
+  let itemsPerPage = parseInt(localStorage.getItem("monk_items_per_page")) || 24;
+  let currentFilteredMonks = [];
+
+  // Bind View Mode Switcher
+  if (itemsPerPageSelect) {
+    itemsPerPageSelect.value = itemsPerPage.toString();
+    itemsPerPageSelect.addEventListener("change", (e) => {
+      itemsPerPage = parseInt(e.target.value) || 24;
+      localStorage.setItem("monk_items_per_page", itemsPerPage);
+      currentPage = 1;
+      renderCurrentMonkList();
+    });
+  }
+
+  if (viewGridBtn && viewTableBtn) {
+    updateViewModeButtons();
+
+    viewGridBtn.addEventListener("click", () => {
+      currentViewMode = "grid";
+      localStorage.setItem("monk_view_mode", "grid");
+      updateViewModeButtons();
+      renderCurrentMonkList();
+    });
+
+    viewTableBtn.addEventListener("click", () => {
+      currentViewMode = "table";
+      localStorage.setItem("monk_view_mode", "table");
+      updateViewModeButtons();
+      renderCurrentMonkList();
+    });
+  }
+
+  function updateViewModeButtons() {
+    if (!viewGridBtn || !viewTableBtn) return;
+    if (currentViewMode === "grid") {
+      viewGridBtn.classList.add("active");
+      viewTableBtn.classList.remove("active");
+    } else {
+      viewTableBtn.classList.add("active");
+      viewGridBtn.classList.remove("active");
+    }
+  }
 
   // Initial Render
   filterAndRenderMonks();
@@ -338,7 +393,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const selectedFaction = factionFilter.value;
     const selectedUpajjhaya = upajjhayaFilter.value;
 
-    const filtered = SANGHA_DATA.monks.filter(monk => {
+    currentFilteredMonks = SANGHA_DATA.monks.filter(monk => {
       // Text Search: check name, chaya, temple, rajathinnanam, code
       const nameFull = `${monk.title} ${monk.firstName} ${monk.lastName} ${monk.chaya}`.toLowerCase();
       const matchesSearch = !query || 
@@ -354,7 +409,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Subdistrict
       const matchesSubdist = !selectedSubdist || monk.subdistrict === selectedSubdist;
 
-      // Position (looks at sanghaPosition or templePosition)
+      // Position
       let matchesPosition = true;
       if (selectedPos) {
         if (selectedPos === "เลขานุการ") {
@@ -380,107 +435,278 @@ document.addEventListener("DOMContentLoaded", async () => {
       return matchesSearch && matchesDistrict && matchesSubdist && matchesPosition && matchesPali && matchesFaction && matchesUpajjhaya;
     });
 
-    renderMonkGrid(filtered);
+    currentPage = 1;
+    renderCurrentMonkList();
   }
 
-  function renderMonkGrid(monks) {
-    if (!monksGrid) return;
-    monksGrid.innerHTML = "";
-    resultsCount.textContent = monks.length;
+  function renderCurrentMonkList() {
+    const totalItems = currentFilteredMonks.length;
+    if (resultsCount) resultsCount.textContent = totalItems.toLocaleString("th-TH");
 
-    if (monks.length === 0) {
+    if (totalItems === 0) {
       emptyState.classList.remove("hidden");
-      monksGrid.classList.add("hidden");
-    } else {
-      emptyState.classList.add("hidden");
-      monksGrid.classList.remove("hidden");
-
-      monks.forEach(monk => {
-        const nameShort = monk.title ? monk.title : `${monk.firstName}`;
-        const initials = nameShort.replace(/พระครู|พระเทพ|พระราช|พระศรี|พระสมุห์|พระมหา/g, "").trim().substring(0, 2);
-        
-        const card = document.createElement("div");
-        card.className = "monk-card";
-        
-        // กำหนดป้ายแสดงสถานะ
-        let positionBadge = monk.sanghaPosition !== "ไม่มี" ? monk.sanghaPosition : monk.templePosition;
-        let contactInfo = monk.phone ? `โทร: ${monk.phone}` : "";
-        if (monk.lineId) {
-          contactInfo += contactInfo ? ` | Line: ${monk.lineId}` : `Line: ${monk.lineId}`;
-        }
-        if (!contactInfo) contactInfo = "ไม่ระบุ";
-
-        // แสดงรูปภาพหากมี หรือไอคอนย่อหากไม่มีรูป
-        let avatarHTML = `<span>${initials || "พ"}</span>`;
-        if (monk.image) {
-          avatarHTML = `<img src="${monk.image}" alt="${monk.title}" onerror="this.outerHTML='<span>${initials || "พ"}</span>'">`;
-        }
-
-        card.innerHTML = `
-          <div class="card-content">
-            <div class="card-top">
-              <div class="card-avatar" title="คลิกเพื่อดูรูปใหญ่">
-                ${avatarHTML}
-              </div>
-              <div class="card-title-info">
-                <h4>${monk.title}</h4>
-                <span class="badge badge-primary">${positionBadge}</span>
-                <div class="monk-real-name-tag" style="font-size: 13px; color: var(--text-secondary); margin-top: 2px; display: flex; align-items: center; gap: 4px;">
-                  <i data-lucide="user-check" style="width: 14px; height: 14px; color: var(--accent-gold); flex-shrink: 0;"></i>
-                  <span><strong style="color: var(--text-primary);">${monk.firstName} ${monk.chaya}</strong></span>
-                </div>
-              </div>
-            </div>
-            <div class="card-details">
-              <div class="detail-row">
-                <i data-lucide="home"></i>
-                <span>วัดที่จำพรรษา: <strong>${monk.residingTemple}</strong></span>
-              </div>
-              <div class="detail-row">
-                <i data-lucide="map-pin"></i>
-                <span>ต.${monk.subdistrict} ${monk.district}</span>
-              </div>
-              <div class="detail-row">
-                <i data-lucide="award"></i>
-                <span>การศึกษา: ${monk.dhammaEducation} / ${monk.paliEducation}</span>
-              </div>
-              <div class="detail-row">
-                <i data-lucide="phone"></i>
-                <span><strong>${contactInfo}</strong></span>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer">
-            <span class="vassa-label">พรรษา: ${monk.vassa} พรรษา</span>
-            <button class="btn btn-secondary btn-sm-action" style="padding: 8px 14px; font-size: 13px;">
-              <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> ข้อมูลสุทธิสงฆ์
-            </button>
-          </div>
-        `;
-
-        // Click Avatar to view Large Lightbox Image
-        const avatarBtn = card.querySelector(".card-avatar");
-        avatarBtn.addEventListener("click", () => {
-          if (monk.image) {
-            openImageLightbox(monk.image, `${monk.title} (${monk.firstName} ${monk.chaya})`);
-          } else {
-            openMonkModal(monk);
-          }
-        });
-
-        // Click Details Button
-        const detailBtn = card.querySelector(".btn-sm-action");
-        detailBtn.addEventListener("click", () => {
-          openMonkModal(monk);
-        });
-
-        monksGrid.appendChild(card);
-      });
+      if (monksGrid) monksGrid.classList.add("hidden");
+      if (monksTableWrapper) monksTableWrapper.classList.add("hidden");
+      if (paginationContainer) paginationContainer.classList.add("hidden");
+      return;
     }
 
-    // Refresh Lucide Icons inside dynamically created elements
+    emptyState.classList.add("hidden");
+
+    // Calculate pagination slices
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const pagedMonks = currentFilteredMonks.slice(startIndex, endIndex);
+
+    // Render Grid vs Table
+    if (currentViewMode === "grid") {
+      if (monksTableWrapper) monksTableWrapper.classList.add("hidden");
+      if (monksGrid) {
+        monksGrid.classList.remove("hidden");
+        renderGridCards(pagedMonks);
+      }
+    } else {
+      if (monksGrid) monksGrid.classList.add("hidden");
+      if (monksTableWrapper) {
+        monksTableWrapper.classList.remove("hidden");
+        renderTableRows(pagedMonks);
+      }
+    }
+
+    // Render Pagination Controls & Info
+    renderPagination(totalItems, startIndex, endIndex, totalPages);
+
     if (typeof lucide !== "undefined") {
       lucide.createIcons();
+    }
+  }
+
+  function renderGridCards(monks) {
+    if (!monksGrid) return;
+    monksGrid.innerHTML = "";
+
+    monks.forEach(monk => {
+      const nameShort = monk.title ? monk.title : `${monk.firstName}`;
+      const initials = nameShort.replace(/พระครู|พระเทพ|พระราช|พระศรี|พระสมุห์|พระมหา/g, "").trim().substring(0, 2);
+      
+      const card = document.createElement("div");
+      card.className = "monk-card";
+      
+      let positionBadge = monk.sanghaPosition !== "ไม่มี" ? monk.sanghaPosition : monk.templePosition;
+      let contactInfo = monk.phone ? `โทร: ${monk.phone}` : "";
+      if (monk.lineId) {
+        contactInfo += contactInfo ? ` | Line: ${monk.lineId}` : `Line: ${monk.lineId}`;
+      }
+      if (!contactInfo) contactInfo = "ไม่ระบุ";
+
+      let avatarHTML = `<span>${initials || "พ"}</span>`;
+      if (monk.image) {
+        avatarHTML = `<img src="${monk.image}" alt="${monk.title}" onerror="this.outerHTML='<span>${initials || "พ"}</span>'">`;
+      }
+
+      card.innerHTML = `
+        <div class="card-content">
+          <div class="card-top">
+            <div class="card-avatar" title="คลิกเพื่อดูรูปใหญ่">
+              ${avatarHTML}
+            </div>
+            <div class="card-title-info">
+              <h4>${monk.title}</h4>
+              <span class="badge badge-primary">${positionBadge}</span>
+              <div class="monk-real-name-tag" style="font-size: 13px; color: var(--text-secondary); margin-top: 2px; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="user-check" style="width: 14px; height: 14px; color: var(--accent-gold); flex-shrink: 0;"></i>
+                <span><strong style="color: var(--text-primary);">${monk.firstName} ${monk.chaya}</strong></span>
+              </div>
+            </div>
+          </div>
+          <div class="card-details">
+            <div class="detail-row">
+              <i data-lucide="home"></i>
+              <span>วัดที่จำพรรษา: <strong>${monk.residingTemple}</strong></span>
+            </div>
+            <div class="detail-row">
+              <i data-lucide="map-pin"></i>
+              <span>ต.${monk.subdistrict} ${monk.district}</span>
+            </div>
+            <div class="detail-row">
+              <i data-lucide="award"></i>
+              <span>การศึกษา: ${monk.dhammaEducation} / ${monk.paliEducation}</span>
+            </div>
+            <div class="detail-row">
+              <i data-lucide="phone"></i>
+              <span><strong>${contactInfo}</strong></span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="vassa-label">พรรษา: ${monk.vassa} พรรษา</span>
+          <button class="btn btn-secondary btn-sm-action" style="padding: 8px 14px; font-size: 13px;">
+            <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> ข้อมูลสุทธิสงฆ์
+          </button>
+        </div>
+      `;
+
+      const avatarBtn = card.querySelector(".card-avatar");
+      avatarBtn.addEventListener("click", () => {
+        if (monk.image) {
+          openImageLightbox(monk.image, `${monk.title} (${monk.firstName} ${monk.chaya})`);
+        } else {
+          openMonkModal(monk);
+        }
+      });
+
+      const detailBtn = card.querySelector(".btn-sm-action");
+      detailBtn.addEventListener("click", () => {
+        openMonkModal(monk);
+      });
+
+      monksGrid.appendChild(card);
+    });
+  }
+
+  function renderTableRows(monks) {
+    if (!monksTableBody) return;
+    monksTableBody.innerHTML = "";
+
+    monks.forEach(monk => {
+      const nameShort = monk.title ? monk.title : `${monk.firstName}`;
+      const initials = nameShort.replace(/พระครู|พระเทพ|พระราช|พระศรี|พระสมุห์|พระมหา/g, "").trim().substring(0, 2);
+      let positionBadge = monk.sanghaPosition !== "ไม่มี" ? monk.sanghaPosition : monk.templePosition;
+
+      let avatarHTML = `<div class="table-monk-avatar"><span>${initials || "พ"}</span></div>`;
+      if (monk.image) {
+        avatarHTML = `<div class="table-monk-avatar"><img src="${monk.image}" alt="${monk.title}" onerror="this.outerHTML='<span>${initials || "พ"}</span>'"></div>`;
+      }
+
+      const tr = document.createElement("tr");
+      tr.className = "monk-table-row";
+      tr.innerHTML = `
+        <td style="text-align: center;">${avatarHTML}</td>
+        <td>
+          <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${monk.title}</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">${monk.firstName} ${monk.chaya}</div>
+        </td>
+        <td><span class="badge badge-primary">${positionBadge}</span></td>
+        <td><strong>${monk.residingTemple}</strong></td>
+        <td>ต.${monk.subdistrict} ${monk.district}</td>
+        <td>${monk.dhammaEducation} / ${monk.paliEducation}</td>
+        <td>${monk.phone || "-"}</td>
+        <td style="text-align: center;">
+          <button class="btn btn-secondary btn-view-detail" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+            <i data-lucide="eye" style="width: 13px; height: 13px;"></i> ดูข้อมูล
+          </button>
+        </td>
+      `;
+
+      tr.addEventListener("click", (e) => {
+        openMonkModal(monk);
+      });
+
+      monksTableBody.appendChild(tr);
+    });
+  }
+
+  function renderPagination(totalItems, startIndex, endIndex, totalPages) {
+    if (!paginationContainer) return;
+
+    if (totalItems <= itemsPerPage) {
+      paginationContainer.classList.add("hidden");
+      return;
+    }
+    paginationContainer.classList.remove("hidden");
+
+    if (paginationInfo) {
+      paginationInfo.textContent = `แสดง ${(startIndex + 1).toLocaleString("th-TH")} - ${endIndex.toLocaleString("th-TH")} จากทั้งหมด ${totalItems.toLocaleString("th-TH")} รายการ (หน้า ${currentPage}/${totalPages})`;
+    }
+
+    if (!paginationControls) return;
+    paginationControls.innerHTML = "";
+
+    // Previous Button
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "pagination-btn";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.innerHTML = '<i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>';
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderCurrentMonkList();
+        scrollToDirectoryTop();
+      }
+    });
+    paginationControls.appendChild(prevBtn);
+
+    // Page Numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+      const p1 = createPageBtn(1);
+      paginationControls.appendChild(p1);
+      if (startPage > 2) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        paginationControls.appendChild(ellipsis);
+      }
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+      const pBtn = createPageBtn(p);
+      paginationControls.appendChild(pBtn);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        paginationControls.appendChild(ellipsis);
+      }
+      const pLast = createPageBtn(totalPages);
+      paginationControls.appendChild(pLast);
+    }
+
+    // Next Button
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "pagination-btn";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.innerHTML = '<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>';
+    nextBtn.addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderCurrentMonkList();
+        scrollToDirectoryTop();
+      }
+    });
+    paginationControls.appendChild(nextBtn);
+  }
+
+  function createPageBtn(pageNum) {
+    const btn = document.createElement("button");
+    btn.className = `pagination-btn ${pageNum === currentPage ? "active" : ""}`;
+    btn.textContent = pageNum.toLocaleString("th-TH");
+    btn.addEventListener("click", () => {
+      currentPage = pageNum;
+      renderCurrentMonkList();
+      scrollToDirectoryTop();
+    });
+    return btn;
+  }
+
+  function scrollToDirectoryTop() {
+    const dirSection = document.getElementById("directory-section");
+    if (dirSection) {
+      dirSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 

@@ -244,14 +244,58 @@
         </div>
       </div>
 
-      <!-- Results stats -->
-      <div class="results-meta">
-        <p>พบข้อมูลทำเนียบคณะสงฆ์ <span id="results-count">0</span> รูป</p>
+      <!-- Results stats and View Controls -->
+      <div class="results-meta-bar">
+        <div class="results-meta">
+          <p>พบข้อมูลทำเนียบคณะสงฆ์ <span id="results-count">0</span> รูป</p>
+        </div>
+        
+        <div class="view-controls">
+          <div class="items-per-page-select">
+            <span>แสดง:</span>
+            <select id="items-per-page" aria-label="จำนวนรายการต่อหน้า">
+              <option value="12">12 รูป/หน้า</option>
+              <option value="24" selected>24 รูป/หน้า</option>
+              <option value="48">48 รูป/หน้า</option>
+              <option value="100">100 รูป/หน้า</option>
+            </select>
+          </div>
+          
+          <div class="view-toggle-btns">
+            <button id="view-grid-btn" class="view-btn active" title="มุมมองแบบการ์ด">
+              <i data-lucide="layout-grid" style="width:15px; height:15px;"></i> การ์ด
+            </button>
+            <button id="view-table-btn" class="view-btn" title="มุมมองแบบตาราง">
+              <i data-lucide="table" style="width:15px; height:15px;"></i> ตาราง
+            </button>
+          </div>
+        </div>
       </div>
       
       <!-- Monk Grid Container -->
       <div class="monk-grid" id="monks-grid">
         <!-- Cards loaded dynamically -->
+      </div>
+
+      <!-- Monk Table Container -->
+      <div class="monk-table-wrapper hidden" id="monks-table-wrapper">
+        <table class="monk-table">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">รูป</th>
+              <th>ยศ / ชื่อ-ฉายา</th>
+              <th>ตำแหน่งปกครอง</th>
+              <th>วัดที่จำพรรษา</th>
+              <th>อำเภอ / ตำบล</th>
+              <th>วิทยฐานะ</th>
+              <th>เบอร์โทรศัพท์</th>
+              <th style="text-align: center; width: 90px;">รายละเอียด</th>
+            </tr>
+          </thead>
+          <tbody id="monks-table-body">
+            <!-- Table rows loaded dynamically -->
+          </tbody>
+        </table>
       </div>
       
       <!-- Empty state -->
@@ -259,6 +303,16 @@
         <i data-lucide="users-round" class="empty-icon"></i>
         <h3>ไม่พบข้อมูลพระสงฆ์ที่ค้นหา</h3>
         <p>ไม่มีรายชื่อพระภิกษุสงฆ์ตามเงื่อนไขที่กรองไว้ รบกวนคลิกล้างตัวกรองเพื่อเริ่มค้นหาใหม่</p>
+      </div>
+
+      <!-- Pagination Container -->
+      <div class="pagination-wrapper" id="pagination-container">
+        <div class="pagination-info" id="pagination-info">
+          แสดง 0 - 0 จากทั้งหมด 0 รายการ
+        </div>
+        <div class="pagination-controls" id="pagination-controls">
+          <!-- Pagination buttons rendered dynamically -->
+        </div>
       </div>
     </div>
   </section>
