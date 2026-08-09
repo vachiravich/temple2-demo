@@ -441,14 +441,8 @@ const INITIAL_SANGHA_DATA = {
   ]
 };
 
-// ตรวจสอบและเริ่มต้นข้อมูลใน LocalStorage (พร้อมระบบ Auto-Update Version)
+// โหมดแชร์ข้อมูลเริ่มต้นสำหรับบราวเซอร์ (ใช้เป็นแบบร่างสำรองหากโหลดข้อมูลภายนอกไม่สำเร็จ)
 const CURRENT_DB_VERSION = "1.4.0";
-const savedVersion = localStorage.getItem("SANGHA_DB_VERSION");
-
-if (!localStorage.getItem("SANGHA_DATABASE") || savedVersion !== CURRENT_DB_VERSION) {
-  localStorage.setItem("SANGHA_DATABASE", JSON.stringify(INITIAL_SANGHA_DATA));
-  localStorage.setItem("SANGHA_DB_VERSION", CURRENT_DB_VERSION);
-}
 
 // อ้างอิงตัวแปรหลักโดยการอ่านค่าจริงจาก LocalStorage ทุกครั้งที่มีการเรียกใช้ไฟล์นี้
 const SANGHA_DATA = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
