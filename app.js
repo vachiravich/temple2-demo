@@ -1,69 +1,134 @@
 document.addEventListener("DOMContentLoaded", async () => {
   let SANGHA_DATA;
-  const isGitHubPages = window.location.hostname.endsWith("github.io");
 
-  if (isGitHubPages) {
-    // โหมด GitHub Pages: อ่านเขียนจาก localStorage (ดึงข้อมูลจริงจาก data.json เป็นค่าตั้งต้น)
-    console.log("Running in Static Demo Mode on GitHub Pages");
-    if (!localStorage.getItem("SANGHA_DATABASE")) {
-      try {
-        const response = await fetch('data.json');
+  // ฟังก์ชันดึงข้อมูลอัจฉริยะ (ดึงจาก PHP MySQL Database ก่อนเสมอ + ป้องกัน HTTP Cache)
+  async function loadSanghaData(forceRefresh = false) {
+    const timestamp = Date.now();
+    let data = null;
+    let dataSource = "unknown";
+
+    // 1. ถ้าต้องการบังคับโหลดข้อมูลสดจากฐานข้อมูล ให้ล้าง cache ใน browser ก่อน
+    if (forceRefresh) {
+      try { localStorage.removeItem("SANGHA_DATABASE"); } catch(e) {}
+    }
+
+    // 2. พยายามดึงข้อมูลสดจาก PHP Backend API (api_get_data.php) ก่อนเสมอ พร้อม no-cache headers
+    try {
+      const response = await fetch(`api_get_data.php?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+      });
+      if (response.ok) {
         const result = await response.json();
-        if (result.status === 'success') {
-          localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result));
+        if (result && result.status === 'success') {
+          data = result;
+          dataSource = "MySQL Database (Live API)";
+          try {
+            localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result));
+          } catch(e) {}
+        }
+      }
+    } catch (err) {
+      console.warn("PHP API not reachable, attempting static fallbacks...", err);
+    }
+
+    // 3. ถ้าไม่มี PHP API (เช่น รันบน Static GitHub Pages) ให้ลองดึง static data.json ล่าสุด
+    if (!data) {
+      try {
+        const response = await fetch(`data.json?t=${timestamp}`, {
+          cache: 'no-store',
+          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
+        if (response.ok) {
+          const result = await response.json();
+          if (result && result.status === 'success') {
+            data = result;
+            dataSource = "Static data.json";
+            try {
+              localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result));
+            } catch(e) {}
+          }
         }
       } catch (err) {
-        console.error("Failed to fetch static data.json", err);
+        console.warn("data.json fetch failed", err);
       }
     }
 
-    try {
-      SANGHA_DATA = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-    } catch (e) {
-      console.error(e);
+    // 4. ถ้าดึงจาก Network ไม่ได้ ให้ใช้ข้อมูลจาก localStorage
+    if (!data) {
+      try {
+        const cached = localStorage.getItem("SANGHA_DATABASE");
+        if (cached) {
+          data = JSON.parse(cached);
+          dataSource = "localStorage Cache";
+        }
+      } catch (e) {
+        console.error("localStorage parse error", e);
+      }
     }
 
-    // กรณีไม่มีข้อมูลจริงในบราวเซอร์และโหลด data.json ไม่สำเร็จ ให้ใช้ข้อมูลดิบจาก data.js
-    if (!SANGHA_DATA && typeof INITIAL_SANGHA_DATA !== "undefined") {
-      SANGHA_DATA = INITIAL_SANGHA_DATA;
+    // 5. Fallback ลำดับสุดท้าย: INITIAL_SANGHA_DATA (data.js)
+    if (!data && typeof INITIAL_SANGHA_DATA !== "undefined") {
+      data = INITIAL_SANGHA_DATA;
+      dataSource = "INITIAL_SANGHA_DATA (data.js)";
     }
-    
-    // แสดง Badge แจ้งเตือนสถานะเดโม่บนหัวข้อหลัก
-    const headerTitle = document.querySelector(".header-title p") || document.querySelector(".header-title");
-    if (headerTitle) {
-      const badge = document.createElement("span");
-      badge.textContent = "โหมดจำลอง (GitHub Pages)";
-      badge.style.fontSize = "11px";
-      badge.style.marginLeft = "10px";
-      badge.style.background = "rgba(245, 158, 11, 0.2)";
-      badge.style.color = "#f59e0b";
-      badge.style.border = "1px solid rgba(245, 158, 11, 0.3)";
-      badge.style.padding = "2px 8px";
-      badge.style.borderRadius = "4px";
-      badge.style.verticalAlign = "middle";
-      badge.style.display = "inline-block";
-      headerTitle.appendChild(badge);
-    }
-  } else {
-    // โหมดปกติ (PHP + MySQL Backend)
-    try {
-      const response = await fetch('api_get_data.php');
-      const result = await response.json();
-      if (result.status === 'success') {
-        SANGHA_DATA = result;
-      } else {
-        alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
-        return;
-      }
-    } catch (error) {
-      console.error("Failed to fetch database:", error);
-      alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลคณะสงฆ์ได้");
-      return;
-    }
+
+    console.log(`[Sangha App] Loaded data from: ${dataSource}`);
+    return { data, dataSource };
+  }
+
+  // โหลดข้อมูลเริ่มต้น
+  const { data: loadedData, dataSource } = await loadSanghaData();
+  SANGHA_DATA = loadedData;
+
+  if (!SANGHA_DATA) {
+    alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลคณะสงฆ์ได้ กรุณาตรวจสอบการเชื่อมต่อ");
+    return;
   }
 
   // เผยแพร่ตัวแปรไปสู่ Global Scope สำหรับฟังก์ชันหน้าต่าง Modal
   window.SANGHA_DATA = SANGHA_DATA;
+
+  // แสดง Badge หากไม่ได้ดึงตรงจาก Live MySQL Database
+  const headerTitle = document.querySelector(".header-title");
+  if (headerTitle && dataSource !== "MySQL Database (Live API)") {
+    const badge = document.createElement("span");
+    badge.textContent = `โหมดจำลอง (${dataSource})`;
+    badge.style.fontSize = "11px";
+    badge.style.marginLeft = "10px";
+    badge.style.background = "rgba(245, 158, 11, 0.2)";
+    badge.style.color = "#f59e0b";
+    badge.style.border = "1px solid rgba(245, 158, 11, 0.3)";
+    badge.style.padding = "2px 8px";
+    badge.style.borderRadius = "4px";
+    badge.style.verticalAlign = "middle";
+    badge.style.display = "inline-block";
+    headerTitle.appendChild(badge);
+  }
+
+  // ผูกปุ่มกด "โหลดข้อมูลใหม่"
+  const refreshBtn = document.getElementById("refresh-data-btn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", async () => {
+      refreshBtn.disabled = true;
+      const oldText = refreshBtn.innerHTML;
+      refreshBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> กำลังโหลด...';
+      if (typeof lucide !== "undefined") lucide.createIcons();
+
+      const { data: newData, dataSource: newSource } = await loadSanghaData(true);
+      if (newData) {
+        window.SANGHA_DATA = newData;
+        SANGHA_DATA = newData;
+        alert(`ดึงข้อมูลล่าสุดเรียบร้อยแล้ว (${newSource})`);
+        window.location.reload();
+      } else {
+        alert("ไม่สามารถดึงข้อมูลล่าสุดได้ กรุณาตรวจสอบการเชื่อมต่อ");
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = oldText;
+        if (typeof lucide !== "undefined") lucide.createIcons();
+      }
+    });
+  }
 
   // 1. Initial Lucide Icons
   if (typeof lucide !== "undefined") {

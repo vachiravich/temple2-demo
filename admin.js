@@ -112,61 +112,92 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // 2. Fetch Data (Depending on Environment)
-    let sanghaDb;
-    if (isGitHubPages) {
-      console.log("Admin Back-office running in Static Demo Mode on GitHub Pages");
-      if (!localStorage.getItem("SANGHA_DATABASE")) {
-        try {
-          const response = await fetch('data.json');
+    // 2. Fetch Data (Direct PHP Database API First + Cache Buster)
+    async function loadAdminSanghaData() {
+      const timestamp = Date.now();
+      let data = null;
+      let dataSource = "unknown";
+
+      // 2.1 ดึงจาก PHP MySQL Database API
+      try {
+        const response = await fetch(`api_get_data.php?t=${timestamp}`, {
+          cache: 'no-store',
+          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
+        if (response.ok) {
           const result = await response.json();
-          if (result.status === 'success') {
-            localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result));
+          if (result && result.status === 'success') {
+            data = result;
+            dataSource = "MySQL Database (Live API)";
+            try { localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result)); } catch(e) {}
           }
-        } catch (err) {
-          console.error("Failed to fetch static data.json", err);
-        }
-      }
-      try {
-        sanghaDb = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
-      } catch (e) {
-        console.error(e);
-      }
-      if (!sanghaDb && typeof INITIAL_SANGHA_DATA !== "undefined") {
-        sanghaDb = INITIAL_SANGHA_DATA;
-      }
-      
-      // แสดงป้ายบอกสถานะ GitHub Pages บนแผงแอดมิน
-      const statusTitle = document.getElementById("current-panel-title");
-      if (statusTitle && !statusTitle.querySelector(".badge-demo")) {
-        const b = document.createElement("span");
-        b.className = "badge-demo";
-        b.textContent = "โหมดจำลอง (Static Demo)";
-        b.style.fontSize = "11px";
-        b.style.background = "rgba(245, 158, 11, 0.2)";
-        b.style.color = "#f59e0b";
-        b.style.padding = "2px 8px";
-        b.style.marginLeft = "10px";
-        b.style.borderRadius = "4px";
-        b.style.display = "inline-block";
-        statusTitle.appendChild(b);
-      }
-    } else {
-      // โหมดฐานข้อมูลจริง (PHP Backend)
-      try {
-        const response = await fetch('api_get_data.php');
-        const result = await response.json();
-        if (result.status === 'success') {
-          sanghaDb = result;
-        } else {
-          alert("ไม่สามารถดึงข้อมูลจากระบบได้: " + result.message);
-          return;
         }
       } catch (e) {
-        console.error(e);
-        alert("เกิดข้อผิดพลาดในการต่อเชื่อม API หลังบ้าน");
-        return;
+        console.warn("Admin Direct API fetch failed", e);
       }
+
+      // 2.2 ถ้าไม่มี PHP API ให้ดึง data.json
+      if (!data) {
+        try {
+          const response = await fetch(`data.json?t=${timestamp}`, {
+            cache: 'no-store',
+            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+          });
+          if (response.ok) {
+            const result = await response.json();
+            if (result && result.status === 'success') {
+              data = result;
+              dataSource = "Static data.json";
+              try { localStorage.setItem("SANGHA_DATABASE", JSON.stringify(result)); } catch(e) {}
+            }
+          }
+        } catch (e) {
+          console.warn("Admin static data.json fetch failed", e);
+        }
+      }
+
+      // 2.3 Fallback to localStorage Cache
+      if (!data) {
+        try {
+          const cached = localStorage.getItem("SANGHA_DATABASE");
+          if (cached) {
+            data = JSON.parse(cached);
+            dataSource = "localStorage Cache";
+          }
+        } catch (e) {}
+      }
+
+      // 2.4 Fallback to INITIAL_SANGHA_DATA
+      if (!data && typeof INITIAL_SANGHA_DATA !== "undefined") {
+        data = INITIAL_SANGHA_DATA;
+        dataSource = "INITIAL_SANGHA_DATA (data.js)";
+      }
+
+      return { data, dataSource };
+    }
+
+    const { data: sanghaDbResult, dataSource } = await loadAdminSanghaData();
+    let sanghaDb = sanghaDbResult;
+
+    if (!sanghaDb) {
+      alert("เกิดข้อผิดพลาดในการโหลดข้อมูลหลังบ้าน");
+      return;
+    }
+
+    // แสดงป้ายบอกสถานะหากไม่ได้ใช้ Live MySQL Database
+    const statusTitle = document.getElementById("current-panel-title");
+    if (statusTitle && dataSource !== "MySQL Database (Live API)" && !statusTitle.querySelector(".badge-demo")) {
+      const b = document.createElement("span");
+      b.className = "badge-demo";
+      b.textContent = `โหมดจำลอง (${dataSource})`;
+      b.style.fontSize = "11px";
+      b.style.background = "rgba(245, 158, 11, 0.2)";
+      b.style.color = "#f59e0b";
+      b.style.padding = "2px 8px";
+      b.style.marginLeft = "10px";
+      b.style.borderRadius = "4px";
+      b.style.display = "inline-block";
+      statusTitle.appendChild(b);
     }
 
     // Expose database globally so edit hooks can read it
