@@ -1907,6 +1907,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const syncGithubBtn = document.getElementById("sync-github-now-btn");
   const syncStatusEl = document.getElementById("github-sync-status");
 
+  // Show Token Settings Card only on localhost/dev domain or if ?dev=1 or ?token=1 is in URL
+  const syncSettingsCard = document.getElementById("github-sync-settings-card");
+  if (syncSettingsCard) {
+    const host = window.location.hostname;
+    const query = window.location.search;
+    const isDevEnv = host === "localhost" || host === "127.0.0.1" || host.endsWith(".test") || query.includes("dev=1") || query.includes("token=1") || query.includes("debug=1");
+    if (isDevEnv) {
+      syncSettingsCard.classList.remove("hidden");
+    } else {
+      syncSettingsCard.classList.add("hidden");
+    }
+  }
+
   // Load saved PAT
   if (patInput) {
     const activeTok = getEffectiveToken();
