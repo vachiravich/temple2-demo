@@ -2453,8 +2453,277 @@ a:hover {
   line-height: 1;
 }
 
-.toast-close:hover {
-  color: #fff;
+
+/* ==================== 14. MOBILE RESPONSIVE ENHANCEMENTS ==================== */
+@media (max-width: 768px) {
+  /* Container & Layout */
+  .container {
+    padding: 0 16px;
+  }
+
+  /* Header Navigation */
+  .app-header {
+    position: relative;
+  }
+
+  .header-container {
+    height: auto;
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .logo-area {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .logo-text h1 {
+    font-size: 16px;
+  }
+
+  .logo-text .sub-text {
+    font-size: 11px;
+  }
+
+  .nav-controls {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .province-select-wrapper {
+    width: 100%;
+    flex: 1 1 100%;
+    margin-bottom: 4px;
+  }
+
+  .province-select {
+    width: 100%;
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+
+  #refresh-data-btn, 
+  .nav-controls .btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 12px;
+    justify-content: center;
+  }
+
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    padding: 36px 0 48px;
+  }
+
+  .hero-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-size: 24px;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+
+  .hero-desc {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stats Section */
+  .stats-section {
+    padding: 36px 0;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .stat-card {
+    padding: 16px 20px;
+  }
+
+  .stat-number {
+    font-size: 26px;
+  }
+
+  /* Hierarchy Section */
+  .hierarchy-section {
+    padding: 36px 0;
+  }
+
+  .hierarchy-tree-container {
+    padding: 24px 12px;
+    border-radius: 16px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .region-tier {
+    width: 100%;
+  }
+
+  .tier-cards-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .hierarchy-card {
+    width: 100% !important;
+    max-width: 320px;
+    padding: 18px 16px;
+  }
+
+  .deputy-node-wrapper {
+    width: 100%;
+    align-items: center;
+  }
+
+  .deputies-row {
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    align-items: center;
+  }
+
+  /* Province Cards Grid */
+  .province-cards-section {
+    padding: 36px 0;
+  }
+
+  .province-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* Directory Section & Filters */
+  .directory-section {
+    padding: 40px 0;
+  }
+
+  .filter-panel {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+
+  .filter-controls-row {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .filter-controls-row .select-wrapper,
+  .filter-controls-row input,
+  .filter-controls-row select {
+    width: 100%;
+  }
+
+  .monks-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .monk-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .card-top {
+    flex-direction: flex-start;
+    gap: 12px;
+  }
+
+  .card-avatar {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+  }
+
+  /* Modal Responsiveness */
+  .modal-card {
+    width: 94%;
+    max-height: 85vh;
+    border-radius: 18px;
+  }
+
+  .modal-header-banner {
+    height: 80px;
+  }
+
+  .modal-body {
+    padding: 20px 16px;
+  }
+
+  /* Admin Responsive */
+  .admin-dashboard-wrapper {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 16px;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .sidebar-nav .nav-item {
+    white-space: nowrap;
+  }
+
+  .admin-content-area {
+    padding: 16px 12px;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  #toast-container {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+  }
+
+  .toast-item {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 
