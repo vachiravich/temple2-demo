@@ -10,6 +10,8 @@ try {
         $id = $data['id'] ?? '';
         
         $fields = [
+            'person_code' => $data['personCode'] ?? '',
+            'image' => $data['image'] ?? '',
             'title' => $data['title'] ?? '',
             'first_name' => $data['firstName'] ?? '',
             'last_name' => $data['lastName'] ?? '',
@@ -18,6 +20,7 @@ try {
             'id_card' => $data['idCard'] ?? '',
             'birth_date' => $data['birthDate'] ?? '',
             'phone' => $data['phone'] ?? '',
+            'phone_secondary' => $data['phoneSecondary'] ?? '',
             'line_id' => $data['lineId'] ?? '',
             'ordination_date' => $data['ordinationDate'] ?? '',
             'upajjhaya' => $data['upajjhaya'] ?? '',
@@ -40,7 +43,9 @@ try {
             'education' => $data['education'] ?? '',
             'dhamma_education' => $data['dhammaEducation'] ?? '',
             'pali_education' => $data['paliEducation'] ?? '',
-            'remarks' => $data['remarks'] ?? ''
+            'pali_grade' => $data['paliGrade'] ?? '',
+            'remarks' => $data['remarks'] ?? '',
+            'data_source' => $data['dataSource'] ?? ''
         ];
         
         if (!empty($id) && is_numeric($id)) {
@@ -83,16 +88,17 @@ try {
             'type' => $data['type'] ?? '',
             'district' => $data['district'] ?? '',
             'subdistrict' => $data['subdistrict'] ?? '',
+            'province' => $data['province'] ?? 'พระนครศรีอยุธยา',
             'abbot' => $data['abbot'] ?? ''
         ];
         
         if (!empty($id) && is_numeric($id)) {
-            $stmt = $pdo->prepare("UPDATE temples SET name = :name, type = :type, district = :district, subdistrict = :subdistrict, abbot = :abbot WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE temples SET name = :name, type = :type, district = :district, subdistrict = :subdistrict, province = :province, abbot = :abbot WHERE id = :id");
             $fields['id'] = (int)$id;
             $stmt->execute($fields);
             echo json_encode(['status' => 'success', 'message' => 'แก้ไขข้อมูลวัดเรียบร้อยแล้ว']);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO temples (name, type, district, subdistrict, abbot) VALUES (:name, :type, :district, :subdistrict, :abbot)");
+            $stmt = $pdo->prepare("INSERT INTO temples (name, type, district, subdistrict, province, abbot) VALUES (:name, :type, :district, :subdistrict, :province, :abbot)");
             $stmt->execute($fields);
             echo json_encode(['status' => 'success', 'message' => 'เพิ่มข้อมูลวัดเรียบร้อยแล้ว', 'newId' => $pdo->lastInsertId()]);
         }
@@ -112,16 +118,17 @@ try {
             'title' => $data['title'] ?? '',
             'date' => $data['date'] ?? '',
             'type' => $data['type'] ?? '',
+            'province' => $data['province'] ?? 'พระนครศรีอยุธยา',
             'description' => $data['description'] ?? ''
         ];
         
         if (!empty($id) && is_numeric($id)) {
-            $stmt = $pdo->prepare("UPDATE events SET title = :title, date = :date, type = :type, description = :description WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE events SET title = :title, date = :date, type = :type, province = :province, description = :description WHERE id = :id");
             $fields['id'] = (int)$id;
             $stmt->execute($fields);
             echo json_encode(['status' => 'success', 'message' => 'แก้ไขกิจกรรมเรียบร้อยแล้ว']);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO events (title, date, type, description) VALUES (:title, :date, :type, :description)");
+            $stmt = $pdo->prepare("INSERT INTO events (title, date, type, province, description) VALUES (:title, :date, :type, :province, :description)");
             $stmt->execute($fields);
             echo json_encode(['status' => 'success', 'message' => 'เพิ่มกิจกรรมเรียบร้อยแล้ว', 'newId' => $pdo->lastInsertId()]);
         }
@@ -140,7 +147,7 @@ try {
         $pdo->exec("TRUNCATE TABLE temples");
         $pdo->exec("TRUNCATE TABLE events");
         
-        exec("python3 /Users/vichy/.gemini/antigravity-ide/brain/048badc5-7ea4-452b-99ff-7e978abe57bd/scratch/generate_inserts.py 2>&1", $out, $ret);
+        exec("python3 /Users/vichy/Sites/temple2/generate_inserts.py 2>&1", $out, $ret);
         if ($ret === 0) {
             $sql = file_get_contents('/Users/vichy/Sites/temple2/import_data.sql');
             $pdo->exec($sql);

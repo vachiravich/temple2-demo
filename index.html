@@ -28,7 +28,7 @@
     <div class="container header-container">
       <div class="logo-area">
         <div class="logo-icon">
-          <i data-lucide="dharmachakra"></i>
+          <span class="dharma-icon">☸</span>
         </div>
         <div class="logo-text">
           <h1 class="header-title">คณะสงฆ์จังหวัดพระนครศรีอยุธยา</h1>
@@ -37,6 +37,14 @@
       </div>
       
       <div class="nav-controls">
+        <div class="province-select-wrapper">
+          <select id="province-select" class="province-select" title="เลือกเขตปกครอง">
+            <option value="REGION">ภาพรวมคณะสงฆ์ภาค 2 (อยุธยา, สระบุรี, อ่างทอง)</option>
+            <option value="พระนครศรีอยุธยา">จังหวัดพระนครศรีอยุธยา</option>
+            <option value="สระบุรี">จังหวัดสระบุรี</option>
+            <option value="อ่างทอง">จังหวัดอ่างทอง</option>
+          </select>
+        </div>
         <button id="refresh-data-btn" class="btn btn-secondary" style="padding: 10px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" title="ดึงข้อมูลล่าสุดจากฐานข้อมูล">
           <i data-lucide="refresh-cw" style="width:15px; height:15px;"></i> โหลดข้อมูลใหม่
         </button>
@@ -56,11 +64,11 @@
     <div class="hero-overlay"></div>
     <div class="container hero-container">
       <div class="hero-badge">
-        <i data-lucide="table-properties"></i> เชื่อมโยงโครงสร้างตามฟิลด์ Google Sheet จำลอง
+        <i data-lucide="table-properties"></i> ระบบสารสนเทศพระสังฆาธิการ คณะสงฆ์ภาค 2
       </div>
-      <h2 class="hero-title">ระบบทะเบียนประวัติและทำเนียบปกครอง</h2>
-      <p class="hero-desc">
-        สืบค้น ทำเบียนประวัติ และติดตามภารกิจการบริหารการปกครองคณะสงฆ์จังหวัดพระนครศรีอยุธยา ครอบคลุมทั้ง ข้อมูลสุทธิสงฆ์ วิทยฐานะ ตำแหน่งการปกครอง และรายละเอียดสมณศักดิ์
+      <h2 class="hero-title" id="hero-main-title">ระบบทะเบียนประวัติและทำเนียบปกครอง</h2>
+      <p class="hero-desc" id="hero-main-desc">
+        สืบค้น ทะเบียนประวัติ และติดตามภารกิจการบริหารการปกครองคณะสงฆ์ภาค 2 (อยุธยา, สระบุรี, อ่างทอง) ครอบคลุมทั้ง ข้อมูลสุทธิสงฆ์ วิทยฐานะ ตำแหน่งการปกครอง และรายละเอียดสมณศักดิ์
       </p>
       
       <div class="hero-actions">
@@ -78,7 +86,7 @@
   <section class="stats-section container">
     <div class="section-title-wrapper text-center">
       <h3 class="section-subtitle">OVERVIEW</h3>
-      <h2 class="section-title">ข้อมูลสถิติคณะสงฆ์ในจังหวัด</h2>
+      <h2 class="section-title" id="stats-section-title">ข้อมูลสถิติคณะสงฆ์ภาค 2</h2>
     </div>
     
     <div class="stats-grid">
@@ -88,7 +96,7 @@
         </div>
         <div class="stat-info">
           <h4 class="stat-number" id="stat-temples">0</h4>
-          <p class="stat-label">วัดในจังหวัดทั้งหมด</p>
+          <p class="stat-label">วัดทั้งหมด</p>
         </div>
         <div class="stat-bg-icon"><i data-lucide="home"></i></div>
       </div>
@@ -99,20 +107,9 @@
         </div>
         <div class="stat-info">
           <h4 class="stat-number" id="stat-monks">0</h4>
-          <p class="stat-label">พระภิกษุสามเณร</p>
+          <p class="stat-label">พระสังฆาธิการ / พระภิกษุ</p>
         </div>
         <div class="stat-bg-icon"><i data-lucide="users"></i></div>
-      </div>
-      
-      <div class="stat-card">
-        <div class="stat-icon-wrapper gold">
-          <i data-lucide="graduation-cap"></i>
-        </div>
-        <div class="stat-info">
-          <h4 class="stat-number" id="stat-novices">0</h4>
-          <p class="stat-label">สามเณรสังศึกษา</p>
-        </div>
-        <div class="stat-bg-icon"><i data-lucide="graduation-cap"></i></div>
       </div>
       
       <div class="stat-card">
@@ -131,11 +128,21 @@
   <!-- Administrative Hierarchy -->
   <section id="hierarchy-section" class="hierarchy-section container">
     <div class="section-title-wrapper">
-      <h3 class="section-subtitle">ADMINISTRATIVE HIERARCHY</h3>
-      <h2 class="section-title">โครงสร้างการบริหารคณะสงฆ์จังหวัด (จำลอง)</h2>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h3 class="section-subtitle">ADMINISTRATIVE HIERARCHY</h3>
+          <h2 class="section-title" id="hierarchy-title">โครงสร้างการบริหารคณะสงฆ์ภาค 2</h2>
+        </div>
+        <div id="back-to-region-container" class="hidden">
+          <button id="back-to-region-btn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">
+            <i data-lucide="arrow-left" style="width:14px; height:14px;"></i> กลับหน้าภาพรวมภาค 2
+          </button>
+        </div>
+      </div>
     </div>
     
-    <div class="hierarchy-tree-container">
+    <div class="hierarchy-tree-container" id="hierarchy-tree-container">
+      <!-- Dynamic hierarchy tree rendered by app.js -->
       <div class="hierarchy-card governor-card" id="governor-node">
         <div class="loading-placeholder">กำลังโหลดข้อมูล...</div>
       </div>
@@ -148,6 +155,77 @@
     </div>
     <div class="hierarchy-note text-center">
       <i data-lucide="info"></i> ท่านสามารถกดคลิกที่โครงสร้างการบริหารด้านบน เพื่อเปิดดูข้อมูลประวัติตามฟิลด์ Google Sheet ได้ทันที
+    </div>
+  </section>
+
+  <!-- Province Cards Navigation Section (Show on Region mode) -->
+  <section id="province-cards-section" class="province-cards-section container">
+    <div class="section-title-wrapper text-center">
+      <h3 class="section-subtitle">PROVINCIAL BRANCHES</h3>
+      <h2 class="section-title">เลือกดูข้อมูลแยกตามจังหวัดในภาค 2</h2>
+      <p class="section-desc">คลิกเลือกจังหวัดเพื่อดูโครงสร้างเจ้าคณะจังหวัด รองเจ้าคณะจังหวัด และทำเนียบพระสังฆาธิการประจำจังหวัด</p>
+    </div>
+
+    <div class="province-cards-grid">
+      <!-- Ayutthaya Card -->
+      <div class="province-nav-card" onclick="selectProvinceView('พระนครศรีอยุธยา')">
+        <div class="p-card-header ayu-bg">
+          <span class="p-badge">740 บุคคล</span>
+          <i data-lucide="landmark" class="p-card-icon"></i>
+        </div>
+        <div class="p-card-body">
+          <h3>จังหวัดพระนครศรีอยุธยา</h3>
+          <p class="p-gov-name"><i data-lucide="crown"></i> เจ้าคณะจังหวัด: พระเทพวัชรจริยาจารย์</p>
+          <p class="p-gov-temple">วัดกษัตราธิราชวรวิหาร</p>
+          <div class="p-stats-row">
+            <span><i data-lucide="home"></i> 521 วัด</span>
+            <span><i data-lucide="map-pin"></i> 16 อำเภอ</span>
+          </div>
+          <button class="btn btn-primary btn-sm btn-block">
+            <i data-lucide="folder-open"></i> เข้าสู่ข้อมูลจังหวัด
+          </button>
+        </div>
+      </div>
+
+      <!-- Saraburi Card -->
+      <div class="province-nav-card" onclick="selectProvinceView('สระบุรี')">
+        <div class="p-card-header srb-bg">
+          <span class="p-badge">587 บุคคล</span>
+          <i data-lucide="mountain" class="p-card-icon"></i>
+        </div>
+        <div class="p-card-body">
+          <h3>จังหวัดสระบุรี</h3>
+          <p class="p-gov-name"><i data-lucide="crown"></i> เจ้าคณะจังหวัด: พระราชวชิรมงคลวิสิฐ</p>
+          <p class="p-gov-temple">วัดมงคลชัยพัฒนา</p>
+          <div class="p-stats-row">
+            <span><i data-lucide="home"></i> 412 วัด</span>
+            <span><i data-lucide="map-pin"></i> 13 อำเภอ</span>
+          </div>
+          <button class="btn btn-primary btn-sm btn-block">
+            <i data-lucide="folder-open"></i> เข้าสู่ข้อมูลจังหวัด
+          </button>
+        </div>
+      </div>
+
+      <!-- Ang Thong Card -->
+      <div class="province-nav-card" onclick="selectProvinceView('อ่างทอง')">
+        <div class="p-card-header atg-bg">
+          <span class="p-badge">306 บุคคล</span>
+          <i data-lucide="sun" class="p-card-icon"></i>
+        </div>
+        <div class="p-card-body">
+          <h3>จังหวัดอ่างทอง</h3>
+          <p class="p-gov-name"><i data-lucide="crown"></i> เจ้าคณะจังหวัด: พระสุวรรณวชิราทร</p>
+          <p class="p-gov-temple">วัดอ่างทองวรวิหาร</p>
+          <div class="p-stats-row">
+            <span><i data-lucide="home"></i> 247 วัด</span>
+            <span><i data-lucide="map-pin"></i> 7 อำเภอ</span>
+          </div>
+          <button class="btn btn-primary btn-sm btn-block">
+            <i data-lucide="folder-open"></i> เข้าสู่ข้อมูลจังหวัด
+          </button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -354,16 +432,17 @@
         <i data-lucide="x"></i>
       </button>
       
-      <div class="modal-header-banner" id="modal-banner"></div>
+      <div class="modal-header-banner" id="modal-banner" style="display: flex; align-items: flex-end; padding: 16px 32px 36px 148px; box-sizing: border-box;">
+        <h3 id="modal-name" style="font-size: 22px; color: #fff; font-weight: 600; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">พระธรรมรัตนมงคล (แฉล้ม เขมปญฺโญ)</h3>
+      </div>
       
       <div class="modal-body">
-        <div class="modal-avatar-area">
+        <div class="modal-avatar-area" style="display: flex; gap: 30px; align-items: center; margin-top: -40px; margin-bottom: 20px;">
           <div class="modal-avatar" id="modal-avatar">
             <i data-lucide="user"></i>
           </div>
-          <div class="modal-title-info">
-            <h3 id="modal-name">พระธรรมรัตนมงคล (แฉล้ม เขมปญฺโญ)</h3>
-            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+          <div class="modal-title-info" style="margin-top: 30px;">
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
               <span class="badge badge-primary" id="modal-badge-sangha-pos">เจ้าคณะจังหวัด</span>
               <span class="badge badge-secondary" id="modal-badge-faction">มหานิกาย</span>
               <span class="badge badge-secondary" id="modal-badge-pali">ป.ธ.6</span>
@@ -503,7 +582,7 @@
     <div class="container footer-content">
       <div class="footer-brand">
         <div class="footer-logo">
-          <i data-lucide="dharmachakra"></i>
+          <span class="dharma-icon">☸</span>
           <span>คณะสงฆ์จังหวัดพระนครศรีอยุธยา</span>
         </div>
         <p class="footer-disclaimer">
@@ -545,7 +624,7 @@
   </div>
 
   <!-- App Script Dependencies -->
-  <script src="data.js?v=2.0.0"></script>
-  <script src="app.js?v=2.0.0"></script>
+  <script src="data.js?v=2.1.0"></script>
+  <script src="app.js?v=2.1.0"></script>
 </body>
 </html>

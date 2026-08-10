@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบจัดการหลังบ้าน | คณะสงฆ์จังหวัดพระนครศรีอยุธยา (Demo)</title>
+  <title>ระบบจัดการหลังบ้าน | คณะสงฆ์ภาค 2 (Demo)</title>
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,10 +28,10 @@
     <div class="login-card">
       <div class="login-header">
         <div class="login-logo">
-          <i data-lucide="dharmachakra"></i>
+          <span class="dharma-icon">☸</span>
         </div>
         <h2>เข้าสู่ระบบจัดการข้อมูลคณะสงฆ์</h2>
-        <p>จังหวัดพระนครศรีอยุธยา (ระบบจำลองหลังบ้าน)</p>
+        <p>คณะสงฆ์ภาค 2 (ระบบจำลองหลังบ้าน)</p>
       </div>
       
       <div class="login-alert hidden" id="login-error">
@@ -72,10 +72,10 @@
     <!-- Sidebar -->
     <aside class="admin-sidebar">
       <div class="sidebar-brand">
-        <i data-lucide="dharmachakra" class="logo-spin"></i>
+        <span class="dharma-icon logo-spin">☸</span>
         <div>
           <h3>ระบบหลังบ้าน</h3>
-          <span>จังหวัดพระนครศรีอยุธยา</span>
+          <span>คณะสงฆ์ภาค 2</span>
         </div>
       </div>
       
@@ -180,12 +180,58 @@
           </button>
         </div>
 
+        <!-- Filters Bar for Monks -->
+        <div class="admin-filters-bar" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; background: var(--bg-secondary); padding: 16px; border-radius: 12px; border: 1px solid var(--border-light);">
+          <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin-right: 8px;">ตัวกรอง:</div>
+          <div class="select-wrapper" style="min-width: 150px;">
+            <select id="admin-filter-monk-province" style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกจังหวัด</option>
+              <option value="พระนครศรีอยุธยา">พระนครศรีอยุธยา</option>
+              <option value="อ่างทอง">อ่างทอง</option>
+              <option value="สระบุรี">สระบุรี</option>
+              <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+              <option value="ภาค 2">ภาค 2 (ภาพรวม)</option>
+            </select>
+          </div>
+          <div class="select-wrapper" style="min-width: 150px;">
+            <select id="admin-filter-monk-district" disabled style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกอำเภอ</option>
+            </select>
+          </div>
+          <div class="select-wrapper" style="min-width: 150px;">
+            <select id="admin-filter-monk-subdistrict" disabled style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกตำบล</option>
+            </select>
+          </div>
+          <div class="select-wrapper" style="min-width: 160px;">
+            <select id="admin-filter-monk-position" style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกตำแหน่งปกครอง</option>
+              <option value="เจ้าคณะภาค">เจ้าคณะภาค (เจ้าคณะภาค 2)</option>
+              <option value="รองเจ้าคณะภาค">รองเจ้าคณะภาค (รองเจ้าคณะภาค 2)</option>
+              <option value="ที่ปรึกษาเจ้าคณะภาค">ที่ปรึกษาเจ้าคณะภาค (ทป.จภ.2)</option>
+              <option value="เลขานุการเจ้าคณะภาค">เลขานุการเจ้าคณะภาค (เลข.จภ.2)</option>
+              <option value="เจ้าคณะจังหวัด">เจ้าคณะจังหวัด</option>
+              <option value="รองเจ้าคณะจังหวัด">รองเจ้าคณะจังหวัด</option>
+              <option value="เจ้าคณะอำเภอ">เจ้าคณะอำเภอ</option>
+              <option value="เจ้าคณะตำบล">เจ้าคณะตำบล</option>
+              <option value="เจ้าอาวาส">เจ้าอาวาส</option>
+              <option value="รองเจ้าอาวาส">รองเจ้าอาวาส</option>
+              <option value="ผู้ช่วยเจ้าอาวาส">ผู้ช่วยเจ้าอาวาส</option>
+              <option value="เลขานุการ">เลขานุการ (ทุกระดับ)</option>
+            </select>
+          </div>
+          <button id="admin-reset-monk-filters" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
+            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> รีเซ็ตตัวกรอง
+          </button>
+        </div>
+
         <div class="table-responsive">
           <table class="admin-table">
             <thead>
               <tr>
                 <th>รูปภาพย่อ</th>
                 <th>ชื่อ-สมณศักดิ์</th>
+                <th>จังหวัด</th>
                 <th>ตำแหน่งปกครอง</th>
                 <th>ฝ่าย/นิกาย</th>
                 <th>สังกัดวัด</th>
@@ -197,6 +243,16 @@
               <!-- Rendered dynamically -->
             </tbody>
           </table>
+        </div>
+
+        <!-- Monk Pagination Container -->
+        <div class="pagination-wrapper" id="admin-monk-pagination-container" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div class="pagination-info" id="admin-monk-pagination-info" style="font-size: 14px; color: var(--text-secondary);">
+            แสดง 0 - 0 จากทั้งหมด 0 รายการ
+          </div>
+          <div class="pagination-controls" id="admin-monk-pagination-controls" style="display: flex; gap: 6px;">
+            <!-- Pagination buttons rendered dynamically -->
+          </div>
         </div>
       </section>
 
@@ -212,6 +268,40 @@
           </button>
         </div>
 
+        <!-- Filters Bar for Temples -->
+        <div class="admin-filters-bar" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; background: var(--bg-secondary); padding: 16px; border-radius: 12px; border: 1px solid var(--border-light);">
+          <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin-right: 8px;">ตัวกรอง:</div>
+          <div class="select-wrapper" style="min-width: 150px;">
+            <select id="admin-filter-temple-province" style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกจังหวัด</option>
+              <option value="พระนครศรีอยุธยา">พระนครศรีอยุธยา</option>
+              <option value="อ่างทอง">อ่างทอง</option>
+              <option value="สระบุรี">สระบุรี</option>
+              <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+            </select>
+          </div>
+          <div class="select-wrapper" style="min-width: 150px;">
+            <select id="admin-filter-temple-district" disabled style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกอำเภอ</option>
+            </select>
+          </div>
+          <div class="select-wrapper" style="min-width: 150px;">
+            <select id="admin-filter-temple-subdistrict" disabled style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกตำบล</option>
+            </select>
+          </div>
+          <div class="select-wrapper" style="min-width: 160px;">
+            <select id="admin-filter-temple-type" style="padding: 8px 32px 8px 12px; font-size: 13px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-light); color: var(--text-primary); appearance: none; cursor: pointer; width: 100%;">
+              <option value="">ทุกประเภทวัด</option>
+              <option value="วัดราษฎร์">วัดราษฎร์</option>
+              <option value="พระอารามหลวง">พระอารามหลวง</option>
+            </select>
+          </div>
+          <button id="admin-reset-temple-filters" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
+            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> รีเซ็ตตัวกรอง
+          </button>
+        </div>
+
         <div class="table-responsive">
           <table class="admin-table">
             <thead>
@@ -220,6 +310,7 @@
                 <th>ประเภทวัด</th>
                 <th>ตำบล</th>
                 <th>อำเภอ</th>
+                <th>จังหวัด</th>
                 <th>เจ้าอาวาส</th>
                 <th>การจัดการ</th>
               </tr>
@@ -228,6 +319,16 @@
               <!-- Rendered dynamically -->
             </tbody>
           </table>
+        </div>
+
+        <!-- Temple Pagination Container -->
+        <div class="pagination-wrapper" id="admin-temple-pagination-container" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div class="pagination-info" id="admin-temple-pagination-info" style="font-size: 14px; color: var(--text-secondary);">
+            แสดง 0 - 0 จากทั้งหมด 0 รายการ
+          </div>
+          <div class="pagination-controls" id="admin-temple-pagination-controls" style="display: flex; gap: 6px;">
+            <!-- Pagination buttons rendered dynamically -->
+          </div>
         </div>
       </section>
 
@@ -288,25 +389,49 @@
 
           <!-- Form Tab 1: General -->
           <div class="form-tab-content-panel" id="form-tab-general">
+            
+            <!-- ส่วนจัดการรูปภาพประจำตัว (Profile Photo Uploader) -->
+            <div class="profile-photo-uploader-container" style="display: flex; gap: 20px; align-items: center; background: var(--bg-secondary); padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px dashed var(--border-light);">
+              <div class="photo-preview-wrapper" style="position: relative; width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent-gold); overflow: hidden; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <img id="form-photo-preview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                <div id="form-photo-placeholder" style="font-size: 24px; font-weight: bold; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;">
+                  <i data-lucide="user" style="width: 32px; height: 32px; color: var(--text-secondary);"></i>
+                </div>
+              </div>
+              <div class="photo-uploader-actions" style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-weight: 600; font-size: 14px; margin-bottom: 2px; display: block; color: var(--text-primary);">รูปภาพประจำตัว (โปรไฟล์พระสงฆ์)</label>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-choose-photo" style="padding: 6px 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="upload" style="width:14px; height:14px;"></i> เลือกรูปภาพ
+                  </button>
+                  <button type="button" id="btn-remove-photo" class="btn btn-text btn-sm" style="color: #ef4444; display: none; padding: 6px 12px; font-size: 13px; align-items: center; gap: 6px; background: none; border: none; cursor: pointer;">
+                    <i data-lucide="trash-2" style="width:14px; height:14px;"></i> ลบรูป
+                  </button>
+                  <input type="file" id="f-photo-input" accept="image/*" style="display: none;">
+                </div>
+                <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">รองรับไฟล์ภาพ JPEG, PNG บีบอัดและปรับตำแหน่งครอปหน้าอัตโนมัติ</p>
+              </div>
+            </div>
+
             <div class="form-grid">
               <div class="form-group-item">
                 <label for="f-title">คำนำหน้า / สมณศักดิ์หลัก *</label>
-                <input type="text" id="f-title" placeholder="เช่น พระครูวิมลธรรมวิจิตร, พระมหาธวัชชัย" required>
+                <input type="text" id="f-title" placeholder="เช่น พระครูวิมลธรรมวิจิตร, พระมหาธวัชชัย">
               </div>
               <div class="form-grid-2">
                 <div class="form-group-item">
                   <label for="f-firstname">ชื่อจริง *</label>
-                  <input type="text" id="f-firstname" placeholder="เช่น สุรเดช" required>
+                  <input type="text" id="f-firstname" placeholder="เช่น สุรเดช">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-lastname">นามสกุล *</label>
-                  <input type="text" id="f-lastname" placeholder="เช่น ธมฺมรโต" required>
+                  <label for="f-lastname">นามสกุล</label>
+                  <input type="text" id="f-lastname" placeholder="เช่น ธมฺมรโต">
                 </div>
               </div>
               <div class="form-grid-2">
                 <div class="form-group-item">
-                  <label for="f-chaya">ฉายา (บาลี) *</label>
-                  <input type="text" id="f-chaya" placeholder="เช่น ธมฺมรโต, ปญฺญาพโล" required>
+                  <label for="f-chaya">ฉายา (บาลี)</label>
+                  <input type="text" id="f-chaya" placeholder="เช่น ธมฺมรโต, ปญฺญาพโล">
                 </div>
                 <div class="form-group-item">
                   <label for="f-nickname">ชื่อเล่น</label>
@@ -315,18 +440,18 @@
               </div>
               <div class="form-grid-2">
                 <div class="form-group-item">
-                  <label for="f-idcard">เลขบัตรประชาชน *</label>
-                  <input type="text" id="f-idcard" placeholder="เช่น 3-1402-xxxxx-33-4" required>
+                  <label for="f-idcard">เลขบัตรประชาชน</label>
+                  <input type="text" id="f-idcard" placeholder="เช่น 3-1402-xxxxx-33-4">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-birthdate">วันเดือนปีเกิด *</label>
-                  <input type="text" id="f-birthdate" placeholder="เช่น 8 กันยายน 2511" required>
+                  <label for="f-birthdate">วันเดือนปีเกิด</label>
+                  <input type="text" id="f-birthdate" placeholder="เช่น 8 กันยายน 2511">
                 </div>
               </div>
               <div class="form-grid-2">
                 <div class="form-group-item">
-                  <label for="f-phone">เบอร์โทรศัพท์ติดต่อ *</label>
-                  <input type="text" id="f-phone" placeholder="เช่น 084-567-xxxx" required>
+                  <label for="f-phone">เบอร์โทรศัพท์ติดต่อ</label>
+                  <input type="text" id="f-phone" placeholder="เช่น 084-567-xxxx">
                 </div>
                 <div class="form-group-item">
                   <label for="f-lineid">Line ID</label>
@@ -335,21 +460,21 @@
               </div>
               <div class="form-grid-3">
                 <div class="form-group-item">
-                  <label for="f-education">การศึกษาทางโลก *</label>
-                  <input type="text" id="f-education" placeholder="เช่น ปริญญาตรี (สังคมศาสตร์)" required>
+                  <label for="f-education">การศึกษาทางโลก</label>
+                  <input type="text" id="f-education" placeholder="เช่น ปริญญาตรี (สังคมศาสตร์)">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-dhamma">การศึกษาทางธรรม *</label>
-                  <select id="f-dhamma" required>
+                  <label for="f-dhamma">การศึกษาทางธรรม</label>
+                  <select id="f-dhamma">
+                    <option value="ไม่ได้เรียน">ไม่ได้เรียน</option>
                     <option value="นักธรรมเอก">นักธรรมเอก</option>
                     <option value="นักธรรมโท">นักธรรมโท</option>
                     <option value="นักธรรมตรี">นักธรรมตรี</option>
-                    <option value="ไม่ได้เรียน">ไม่ได้เรียน</option>
                   </select>
                 </div>
                 <div class="form-group-item">
-                  <label for="f-pali">การศึกษาบาลี *</label>
-                  <select id="f-pali" required>
+                  <label for="f-pali">การศึกษาบาลี</label>
+                  <select id="f-pali">
                     <option value="ไม่มี">ไม่มีวุฒิบาลี</option>
                     <option value="เปรียญธรรม 3 ประโยค">ป.ธ.3</option>
                     <option value="เปรียญธรรม 4 ประโยค">ป.ธ.4</option>
@@ -369,56 +494,61 @@
             <div class="form-grid">
               <div class="form-grid-2">
                 <div class="form-group-item">
-                  <label for="f-orddate">วันเดือนปี อุปสมบท *</label>
-                  <input type="text" id="f-orddate" placeholder="เช่น 15 มิถุนายน 2532" required>
+                  <label for="f-orddate">วันเดือนปี อุปสมบท</label>
+                  <input type="text" id="f-orddate" placeholder="เช่น 15 มิถุนายน 2532">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-upajjhaya">พระอุปัชฌาย์ *</label>
-                  <input type="text" id="f-upajjhaya" placeholder="เช่น พระเทพมงคลรังสี วัดมหาธาตุวราราม" required>
+                  <label for="f-upajjhaya">พระอุปัชฌาย์</label>
+                  <input type="text" id="f-upajjhaya" placeholder="เช่น พระเทพมงคลรังสี วัดมหาธาตุวราราม">
                 </div>
               </div>
               <div class="form-grid-3">
                 <div class="form-group-item">
-                  <label for="f-vassa">จำนวนพรรษา *</label>
-                  <input type="number" id="f-vassa" placeholder="เช่น 37" required min="0">
+                  <label for="f-vassa">จำนวนพรรษา</label>
+                  <input type="number" id="f-vassa" placeholder="เช่น 37" min="0">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-age">อายุ (ปี) *</label>
-                  <input type="number" id="f-age" placeholder="เช่น 58" required min="0">
+                  <label for="f-age">อายุ (ปี)</label>
+                  <input type="number" id="f-age" placeholder="เช่น 58" min="0">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-region">ภาคปกครองสงฆ์ *</label>
-                  <input type="text" id="f-region" value="ภาค 2" placeholder="เช่น ภาค 2" required>
+                  <label for="f-region">ภาคปกครองสงฆ์</label>
+                  <input type="text" id="f-region" value="ภาค 2" placeholder="เช่น ภาค 2">
                 </div>
               </div>
               <div class="form-grid-2">
                 <div class="form-group-item">
-                  <label for="f-temple-residing">วัดที่จำพรรษาปัจจุบัน *</label>
-                  <input type="text" id="f-temple-residing" placeholder="เช่น วัดราษฎร์บำรุง" required>
+                  <label for="f-temple-residing">วัดที่จำพรรษาปัจจุบัน</label>
+                  <input type="text" id="f-temple-residing" placeholder="เช่น วัดราษฎร์บำรุง">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-temple-affiliated">วัดที่สังกัด (สุทธิสงฆ์) *</label>
-                  <input type="text" id="f-temple-affiliated" placeholder="เช่น วัดราษฎร์บำรุง" required>
+                  <label for="f-temple-affiliated">วัดที่สังกัด (สุทธิสงฆ์)</label>
+                  <input type="text" id="f-temple-affiliated" placeholder="เช่น วัดราษฎร์บำรุง">
                 </div>
               </div>
               <div class="form-grid-3">
                 <div class="form-group-item">
-                  <label for="f-district">อำเภอที่ตั้งวัด *</label>
-                  <select id="f-district" required>
+                  <label for="f-district">อำเภอที่ตั้งวัด</label>
+                  <select id="f-district">
                     <option value="">เลือกอำเภอ</option>
                     <!-- Populated dynamically -->
                   </select>
                 </div>
                 <div class="form-group-item">
-                  <label for="f-subdistrict">ตำบลที่ตั้งวัด *</label>
-                  <select id="f-subdistrict" required disabled>
+                  <label for="f-subdistrict">ตำบลที่ตั้งวัด</label>
+                  <select id="f-subdistrict" disabled>
                     <option value="">เลือกตำบล (เลือกอำเภอก่อน)</option>
                     <!-- Populated dynamically -->
                   </select>
                 </div>
                 <div class="form-group-item">
-                  <label for="f-province">จังหวัด *</label>
-                  <input type="text" id="f-province" value="พระนครศรีอยุธยา" required readonly>
+                  <label for="f-province">จังหวัด</label>
+                  <select id="f-province">
+                    <option value="พระนครศรีอยุธยา">พระนครศรีอยุธยา</option>
+                    <option value="อ่างทอง">อ่างทอง</option>
+                    <option value="สระบุรี">สระบุรี</option>
+                    <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -429,18 +559,22 @@
             <div class="form-grid">
               <div class="form-grid-2">
                 <div class="form-group-item">
-                  <label for="f-temple-pos">ตำแหน่งปกครองในวัด *</label>
-                  <select id="f-temple-pos" required>
+                  <label for="f-temple-pos">ตำแหน่งปกครองในวัด</label>
+                  <select id="f-temple-pos">
+                    <option value="พระลูกวัด">พระลูกวัด</option>
                     <option value="เจ้าอาวาส">เจ้าอาวาส</option>
                     <option value="รองเจ้าอาวาส">รองเจ้าอาวาส</option>
                     <option value="ผู้ช่วยเจ้าอาวาส">ผู้ช่วยเจ้าอาวาส</option>
-                    <option value="พระลูกวัด">พระลูกวัด</option>
                   </select>
                 </div>
                 <div class="form-group-item">
-                  <label for="f-sangha-pos">ตำแหน่งปกครองคณะสงฆ์ *</label>
-                  <select id="f-sangha-pos" required>
+                  <label for="f-sangha-pos">ตำแหน่งปกครองคณะสงฆ์</label>
+                  <select id="f-sangha-pos">
                     <option value="ไม่มี">ไม่มีตำแหน่งบริหารปกครอง</option>
+                    <option value="เจ้าคณะภาค 2">เจ้าคณะภาค 2</option>
+                    <option value="รองเจ้าคณะภาค 2">รองเจ้าคณะภาค 2</option>
+                    <option value="ที่ปรึกษาเจ้าคณะภาค 2 (ทป.จภ.2)">ที่ปรึกษาเจ้าคณะภาค 2 (ทป.จภ.2)</option>
+                    <option value="เลขานุการเจ้าคณะภาค 2">เลขานุการเจ้าคณะภาค 2</option>
                     <option value="เจ้าคณะจังหวัด">เจ้าคณะจังหวัด</option>
                     <option value="รองเจ้าคณะจังหวัด">รองเจ้าคณะจังหวัด</option>
                     <option value="เจ้าคณะอำเภอ">เจ้าคณะอำเภอ</option>
@@ -455,8 +589,8 @@
               </div>
               <div class="form-grid-2">
                 <div class="form-group-item">
-                  <label for="f-upajjhaya-status">สถานะพระอุปัชฌาย์ *</label>
-                  <select id="f-upajjhaya-status" required>
+                  <label for="f-upajjhaya-status">สถานะพระอุปัชฌาย์</label>
+                  <select id="f-upajjhaya-status">
                     <option value="ไม่มี">ไม่ใช่พระอุปัชฌาย์</option>
                     <option value="พระอุปัชฌาย์ประเภทสามัญ">พระอุปัชฌาย์ประเภทสามัญ</option>
                     <option value="พระอุปัชฌาย์ประเภทวิสามัญ">พระอุปัชฌาย์ประเภทวิสามัญ</option>
@@ -473,12 +607,12 @@
                   <input type="text" id="f-rajathinnanam" placeholder="เช่น พระครูวิมลธรรมวิจิตร">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-rankclass">ระดับชั้นสัญญาบัตร/สมณศักดิ์ *</label>
-                  <input type="text" id="f-rankclass" placeholder="เช่น พระครูสัญญาบัตร, พระเปรียญธรรม 7 ประโยค" required>
+                  <label for="f-rankclass">ระดับชั้นสัญญาบัตร/สมณศักดิ์</label>
+                  <input type="text" id="f-rankclass" placeholder="เช่น พระครูสัญญาบัตร, พระเปรียญธรรม 7 ประโยค">
                 </div>
                 <div class="form-group-item">
-                  <label for="f-faction">ฝ่าย / Faction *</label>
-                  <select id="f-faction" required>
+                  <label for="f-faction">ฝ่าย / Faction</label>
+                  <select id="f-faction">
                     <option value="มหานิกาย">มหานิกาย</option>
                     <option value="ธรรมยุต">ธรรมยุต</option>
                   </select>
@@ -527,7 +661,16 @@
               <input type="text" id="ft-type" placeholder="เช่น วัดราษฎร์, พระอารามหลวงชั้นโท" required>
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+              <div class="form-group-item">
+                <label for="ft-province">จังหวัด *</label>
+                <select id="ft-province" required>
+                  <option value="พระนครศรีอยุธยา">พระนครศรีอยุธยา</option>
+                  <option value="อ่างทอง">อ่างทอง</option>
+                  <option value="สระบุรี">สระบุรี</option>
+                  <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                </select>
+              </div>
               <div class="form-group-item">
                 <label for="ft-district">อำเภอที่ตั้ง *</label>
                 <select id="ft-district" required>
@@ -608,6 +751,45 @@
           <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> บันทึกข้อมูล</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ==================== 6. DIALOG MODAL FOR IMAGE CROPPING ==================== -->
+  <div class="modal-overlay hidden" id="crop-image-modal" style="z-index: 1100;">
+    <div class="modal-card" style="max-width: 480px; padding: 24px;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);">ปรับตำแหน่งและขนาดรูปภาพ</h3>
+        <button type="button" class="modal-close-static" id="close-crop-btn" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px;">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <div class="crop-container-box" style="position: relative; width: 100%; aspect-ratio: 1; background: #000; border-radius: 8px; overflow: hidden; cursor: move; display: flex; align-items: center; justify-content: center;">
+        <canvas id="crop-canvas" style="max-width: 100%; max-height: 100%; object-fit: contain;"></canvas>
+        <!-- Overlay boundary ring (looks like circular and square mask) -->
+        <div class="crop-mask-circle" id="crop-mask-overlay" style="position: absolute; inset: 0; pointer-events: none; border: 4px solid var(--accent-gold); border-radius: 50%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); margin: 30px; transition: border-radius 0.3s;"></div>
+        <div style="position: absolute; bottom: 8px; left: 8px; color: #fff; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; font-size: 11px; pointer-events: none;">
+          ลากเพื่อย้าย | เลื่อนสไลเดอร์เพื่อซูม
+        </div>
+      </div>
+      
+      <div class="crop-controls" style="margin-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 13px; color: var(--text-secondary); min-width: 60px;">หน้ากาก:</span>
+          <button type="button" id="btn-crop-mask-circle" class="btn btn-secondary btn-sm active" style="padding: 4px 10px; font-size: 12px; cursor: pointer; border-radius: 4px;">วงกลม</button>
+          <button type="button" id="btn-crop-mask-square" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 12px; cursor: pointer; border-radius: 4px;">สี่เหลี่ยม</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="zoom-out" style="width: 16px; height: 16px; color: var(--text-secondary);"></i>
+          <input type="range" id="crop-zoom-slider" min="0.5" max="3" step="0.05" value="1" style="flex: 1; accent-color: var(--accent-gold); cursor: pointer;">
+          <i data-lucide="zoom-in" style="width: 16px; height: 16px; color: var(--text-secondary);"></i>
+        </div>
+      </div>
+      
+      <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; padding: 0; border: none; background: none;">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-crop">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" id="btn-save-crop" style="background: var(--accent-gold); color: #fff;"><i data-lucide="check"></i> ตกลง</button>
+      </div>
     </div>
   </div>
 

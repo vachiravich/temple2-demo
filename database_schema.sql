@@ -4,15 +4,17 @@ USE `temple2`;
 DROP TABLE IF EXISTS `monks`;
 CREATE TABLE `monks` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `image` VARCHAR(255) DEFAULT '',
+  `person_code` VARCHAR(50) DEFAULT '',
+  `image` MEDIUMTEXT DEFAULT NULL,
   `title` VARCHAR(255) DEFAULT '',
   `first_name` VARCHAR(255) DEFAULT '',
   `last_name` VARCHAR(255) DEFAULT '',
   `chaya` VARCHAR(255) DEFAULT '',
-  `nickname` VARCHAR(100) DEFAULT '',
+  `nickname` VARCHAR(255) DEFAULT '',
   `id_card` VARCHAR(50) DEFAULT '',
   `birth_date` VARCHAR(100) DEFAULT '',
   `phone` VARCHAR(100) DEFAULT '',
+  `phone_secondary` VARCHAR(100) DEFAULT '',
   `line_id` VARCHAR(100) DEFAULT '',
   `ordination_date` VARCHAR(100) DEFAULT '',
   `upajjhaya` VARCHAR(255) DEFAULT '',
@@ -35,8 +37,10 @@ CREATE TABLE `monks` (
   `education` VARCHAR(255) DEFAULT '',
   `dhamma_education` VARCHAR(100) DEFAULT '',
   `pali_education` VARCHAR(100) DEFAULT '',
+  `pali_grade` VARCHAR(100) DEFAULT '',
   `zip_code` VARCHAR(20) DEFAULT '',
   `remarks` TEXT DEFAULT NULL,
+  `data_source` VARCHAR(255) DEFAULT '',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -48,6 +52,7 @@ CREATE TABLE `temples` (
   `type` VARCHAR(255) DEFAULT '',
   `district` VARCHAR(255) DEFAULT '',
   `subdistrict` VARCHAR(255) DEFAULT '',
+  `province` VARCHAR(255) DEFAULT '',
   `abbot` VARCHAR(255) DEFAULT '',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -58,6 +63,7 @@ CREATE TABLE `events` (
   `title` VARCHAR(255) NOT NULL,
   `date` VARCHAR(255) DEFAULT '',
   `type` VARCHAR(100) DEFAULT '',
+  `province` VARCHAR(255) DEFAULT '',
   `description` TEXT DEFAULT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

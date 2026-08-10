@@ -141,6 +141,12 @@ a:hover {
   animation: rotateSlow 20s linear infinite;
 }
 
+.dharma-icon {
+  font-size: 28px;
+  line-height: 1;
+  display: inline-block;
+}
+
 @keyframes rotateSlow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -533,6 +539,155 @@ a:hover {
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+/* Region Multi-Tier Hierarchy Styling */
+.region-tier {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tier-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  background-color: var(--badge-bg);
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(var(--accent-gold-rgb), 0.2);
+  margin-bottom: 16px;
+}
+
+.tier-cards-row {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Province Cards Navigation Section */
+.province-cards-section {
+  padding: 60px 0 80px;
+}
+
+.province-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 28px;
+  margin-top: 36px;
+}
+
+.province-nav-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.province-nav-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--accent-gold);
+}
+
+.p-card-header {
+  height: 110px;
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+}
+
+.ayu-bg {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+.srb-bg {
+  background: linear-gradient(135deg, #065f46 0%, #10b981 100%);
+}
+
+.atg-bg {
+  background: linear-gradient(135deg, #92400e 0%, #f59e0b 100%);
+}
+
+.p-badge {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.p-card-icon {
+  width: 48px;
+  height: 48px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.p-card-body {
+  padding: 24px;
+}
+
+.p-card-body h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.p-gov-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.p-gov-temple {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.p-stats-row {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 14px;
+}
+
+.p-stats-row span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-sm {
+  padding: 10px 18px;
+  font-size: 13px;
+  border-radius: 10px;
 }
 
 /* Directory Section */
@@ -1133,6 +1288,22 @@ a:hover {
 
 .modal-title-info .badge {
   margin-right: 6px;
+}
+
+.modal-title-info .badge-primary {
+  background-color: #c2410c !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.modal-title-info .badge-secondary {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06) !important;
 }
 
 .modal-info-grid {
@@ -2067,5 +2238,225 @@ a:hover {
   color: var(--text-muted);
   font-size: 13px;
 }
+
+/* Province Selector Styling */
+.province-select-wrapper {
+  position: relative;
+}
+
+.province-select {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  font-family: 'Prompt', sans-serif;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 180px;
+}
+
+.province-select:hover {
+  border-color: var(--accent-gold);
+  background: var(--bg-secondary);
+}
+
+.province-select:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* ==================== 12. PHOTO UPLOADER & CANVAS CROPPER ==================== */
+.profile-photo-uploader-container {
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.profile-photo-uploader-container:hover {
+  border-color: var(--accent-gold) !important;
+  background-color: var(--bg-tertiary) !important;
+}
+
+.modal-close-static {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.modal-close-static:hover {
+  background: var(--bg-tertiary);
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+.btn-secondary.btn-sm.active {
+  background: var(--accent-gold) !important;
+  color: #fff !important;
+  border-color: var(--accent-gold) !important;
+}
+
+.crop-container-box {
+  box-shadow: inset 0 4px 20px rgba(0,0,0,0.6);
+  border: 1px solid var(--border-light);
+}
+
+/* Detail Modal Avatar sizing and shape adjustments */
+.modal-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit; /* follows 20px of .modal-avatar */
+  display: block;
+}
+
+/* Hierarchy tree node avatar image */
+.h-avatar-glow img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  cursor: pointer;
+}
+
+/* Styling for zoom slider */
+#crop-zoom-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-light);
+}
+#crop-zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  border: 2px solid #fff;
+  margin-top: -5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease;
+}
+#crop-zoom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+
+/* ==================== 13. BEAUTIFUL TOAST NOTIFICATION SYSTEM ==================== */
+#toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast-item {
+  min-width: 320px;
+  max-width: 450px;
+  background: rgba(26, 26, 30, 0.85);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.toast-item.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Color variations */
+.toast-item.success .toast-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.toast-item.success {
+  border-left: 4px solid #10b981;
+}
+
+.toast-item.error .toast-icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.toast-item.error {
+  border-left: 4px solid #ef4444;
+}
+
+.toast-item.info .toast-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+.toast-item.info {
+  border-left: 4px solid #3b82f6;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+  font-family: 'Prompt', sans-serif;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Sarabun', sans-serif;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.toast-close:hover {
+  color: #fff;
+}
+
+
 
 

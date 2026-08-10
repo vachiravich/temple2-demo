@@ -2,6 +2,110 @@
 document.addEventListener("DOMContentLoaded", () => {
   const isGitHubPages = window.location.hostname.endsWith("github.io");
 
+  // Override native alert with custom beautiful Toast notification
+  window.showToast = function(message, type = "success") {
+    let container = document.getElementById("toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "toast-container";
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast-item ${type}`;
+
+    let iconHtml = '<i data-lucide="check-circle-2"></i>';
+    let titleText = "ดำเนินการสำเร็จ";
+    if (type === "error") {
+      iconHtml = '<i data-lucide="alert-triangle"></i>';
+      titleText = "เกิดข้อผิดพลาด";
+    } else if (type === "info") {
+      iconHtml = '<i data-lucide="info"></i>';
+      titleText = "แจ้งเตือนระบบ";
+    }
+
+    toast.innerHTML = `
+      <div class="toast-icon">
+        ${iconHtml}
+      </div>
+      <div class="toast-content">
+        <div class="toast-title">${titleText}</div>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    if (typeof lucide !== "undefined") {
+      lucide.createIcons();
+    }
+
+    // Slide in
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, 10);
+
+    // Click close
+    const closeBtn = toast.querySelector(".toast-close");
+    closeBtn.addEventListener("click", () => {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        toast.remove();
+      }, 400);
+    });
+
+    // Auto dismiss after 3.5 seconds
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.classList.remove("show");
+        setTimeout(() => {
+          if (toast.parentNode) toast.remove();
+        }, 400);
+      }
+    }, 3500);
+  };
+
+  // Override standard alert function
+  window.alert = function(msg) {
+    let type = "success";
+    if (msg.includes("ไม่สามารถ") || msg.includes("ผิดพลาด") || msg.includes("ล้มเหลว") || msg.includes("error")) {
+      type = "error";
+    } else if (msg.includes("แจ้งเตือน") || msg.includes("กรุณา") || msg.includes("ยืนยัน")) {
+      type = "info";
+    }
+    window.showToast(msg, type);
+  };
+
+  function cleanNameAndChaya(firstName, chaya) {
+    if (!firstName) return { name: "", chaya: chaya || "" };
+    let cleanName = firstName.trim();
+    let cleanChaya = chaya ? chaya.trim() : "";
+    
+    if (cleanChaya) {
+      const normName = cleanName.replace(/\u0e3a/g, "");
+      const normChaya = cleanChaya.replace(/\u0e3a/g, "");
+      
+      if (normName.endsWith(normChaya)) {
+        if (cleanName.endsWith(cleanChaya)) {
+          cleanName = cleanName.substring(0, cleanName.length - cleanChaya.length).trim();
+        } else {
+          const words = cleanName.split(/\s+/);
+          if (words.length > 1) {
+            const lastWord = words[words.length - 1];
+            if (lastWord.replace(/\u0e3a/g, "") === normChaya) {
+              words.pop();
+              cleanName = words.join(" ").trim();
+            }
+          } else if (cleanName.replace(/\u0e3a/g, "") === normChaya) {
+            cleanName = "";
+          }
+        }
+      }
+    }
+    return { name: cleanName, chaya: cleanChaya };
+  }
+
   // 1. Initial Lucide Icons
   if (typeof lucide !== "undefined") {
     lucide.createIcons();
@@ -81,6 +185,15 @@ document.addEventListener("DOMContentLoaded", () => {
       applyTheme(next);
     });
   }
+
+  // State variables for pagination and filtering
+  let monksCurrentPage = 1;
+  const monksItemsPerPage = 15;
+  let filteredMonksList = [];
+
+  let templesCurrentPage = 1;
+  const templesItemsPerPage = 15;
+  let filteredTemplesList = [];
 
   // ==================== DASHBOARD MANAGEMENT FUNCTIONS ====================
   async function initializeDashboard() {
@@ -184,6 +297,25 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // คำนวณรายชื่ออำเภอและตำบลจากข้อมูลวัดแบบไดนามิก
+    if (sanghaDb && sanghaDb.temples) {
+      const districtsMap = {};
+      sanghaDb.temples.forEach(t => {
+        if (t.district) {
+          if (!districtsMap[t.district]) {
+            districtsMap[t.district] = new Set();
+          }
+          if (t.subdistrict) {
+            districtsMap[t.district].add(t.subdistrict);
+          }
+        }
+      });
+      sanghaDb.districts = Object.keys(districtsMap).sort().map(d => ({
+        name: d,
+        subdistricts: Array.from(districtsMap[d]).sort()
+      }));
+    }
+
     // แสดงป้ายบอกสถานะหากไม่ได้ใช้ Live MySQL Database
     const statusTitle = document.getElementById("current-panel-title");
     if (statusTitle && dataSource !== "MySQL Database (Live API)" && !statusTitle.querySelector(".badge-demo")) {
@@ -203,16 +335,37 @@ document.addEventListener("DOMContentLoaded", () => {
     // Expose database globally so edit hooks can read it
     window.SANGHA_DATA = sanghaDb;
 
+    // Initialize list states
+    filteredMonksList = [...sanghaDb.monks];
+    // Sort monks to show จจ and รจ first (Requirement 4)
+    filteredMonksList.sort((a, b) => {
+      const getRank = (monk) => {
+        const pos = (monk.sanghaPosition || "").trim();
+        if (pos.startsWith("จจ") || pos === "เจ้าคณะจังหวัด") return 1;
+        if (pos.startsWith("รจจ") || pos === "รองเจ้าคณะจังหวัด" || pos.startsWith("รจ.")) return 2;
+        return 3;
+      };
+      const rankA = getRank(a);
+      const rankB = getRank(b);
+      if (rankA !== rankB) return rankA - rankB;
+      return a.id - b.id;
+    });
+
+    filteredTemplesList = [...sanghaDb.temples];
+
+    monksCurrentPage = 1;
+    templesCurrentPage = 1;
+
     // 3. Stats update
     updateStatsCounters(sanghaDb);
 
     // 4. Render tables
-    renderMonksTable(sanghaDb.monks);
-    renderTemplesTable(sanghaDb.temples);
+    renderMonksTablePaged();
+    renderTemplesTablePaged();
     renderEventsTable(sanghaDb.events);
 
-    // 5. Initialize search filters
-    setupSearchFilters(sanghaDb);
+    // 5. Initialize search and dropdown filters
+    setupAdminFiltersOnce(sanghaDb);
 
     // 6. Init form structures (Cascading selects)
     setupFormCascadingSelects(sanghaDb);
@@ -268,6 +421,218 @@ document.addEventListener("DOMContentLoaded", () => {
   const eventModal = document.getElementById("event-form-modal");
   const eventForm = document.getElementById("event-crud-form");
 
+  // Image Upload & Crop State Variables
+  let croppedImageBase64 = "";
+
+  const photoInput = document.getElementById("f-photo-input");
+  const choosePhotoBtn = document.getElementById("btn-choose-photo");
+  const removePhotoBtn = document.getElementById("btn-remove-photo");
+  const formPhotoPreview = document.getElementById("form-photo-preview");
+  const formPhotoPlaceholder = document.getElementById("form-photo-placeholder");
+
+  const cropModal = document.getElementById("crop-image-modal");
+  const cropCanvas = document.getElementById("crop-canvas");
+  const cropCtx = cropCanvas ? cropCanvas.getContext("2d") : null;
+  const cropZoomSlider = document.getElementById("crop-zoom-slider");
+  const closeCropBtn = document.getElementById("close-crop-btn");
+  const cancelCropBtn = document.getElementById("btn-cancel-crop");
+  const saveCropBtn = document.getElementById("btn-save-crop");
+  const maskOverlay = document.getElementById("crop-mask-overlay");
+  const maskCircleBtn = document.getElementById("btn-crop-mask-circle");
+  const maskSquareBtn = document.getElementById("btn-crop-mask-square");
+
+  let cropImageObj = null;
+  let cropZoom = 1;
+  let cropOffsetX = 0;
+  let cropOffsetY = 0;
+  let isDraggingCrop = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+
+  function drawCropImage() {
+    if (!cropImageObj || !cropCtx) return;
+    cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+    cropCtx.save();
+    
+    const cx = cropCanvas.width / 2;
+    const cy = cropCanvas.height / 2;
+
+    const imgWidth = cropImageObj.width;
+    const imgHeight = cropImageObj.height;
+    const scaleToFit = Math.min(cropCanvas.width / imgWidth, cropCanvas.height / imgHeight);
+    
+    const drawW = imgWidth * scaleToFit * cropZoom;
+    const drawH = imgHeight * scaleToFit * cropZoom;
+
+    cropCtx.translate(cx + cropOffsetX, cy + cropOffsetY);
+    cropCtx.drawImage(cropImageObj, -drawW / 2, -drawH / 2, drawW, drawH);
+    cropCtx.restore();
+  }
+
+  // Bind upload button click
+  if (choosePhotoBtn) {
+    choosePhotoBtn.addEventListener("click", () => {
+      if (photoInput) photoInput.click();
+    });
+  }
+
+  // Handle file input change
+  if (photoInput) {
+    photoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        cropImageObj = new Image();
+        cropImageObj.onload = () => {
+          cropZoom = 1;
+          cropOffsetX = 0;
+          cropOffsetY = 0;
+          if (cropZoomSlider) cropZoomSlider.value = 1;
+          
+          if (cropCanvas) {
+            cropCanvas.width = 400;
+            cropCanvas.height = 400;
+          }
+          if (cropModal) cropModal.classList.remove("hidden");
+          drawCropImage();
+        };
+        cropImageObj.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Canvas Drag Events
+  if (cropCanvas) {
+    cropCanvas.addEventListener("mousedown", (e) => {
+      isDraggingCrop = true;
+      dragStartX = e.clientX - cropOffsetX;
+      dragStartY = e.clientY - cropOffsetY;
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isDraggingCrop) return;
+      cropOffsetX = e.clientX - dragStartX;
+      cropOffsetY = e.clientY - dragStartY;
+      drawCropImage();
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDraggingCrop = false;
+    });
+
+    // Touch events for mobile dragging
+    cropCanvas.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 1) {
+        isDraggingCrop = true;
+        dragStartX = e.touches[0].clientX - cropOffsetX;
+        dragStartY = e.touches[0].clientY - cropOffsetY;
+      }
+    });
+
+    cropCanvas.addEventListener("touchmove", (e) => {
+      if (!isDraggingCrop || e.touches.length !== 1) return;
+      cropOffsetX = e.touches[0].clientX - dragStartX;
+      cropOffsetY = e.touches[0].clientY - dragStartY;
+      e.preventDefault();
+      drawCropImage();
+    });
+
+    cropCanvas.addEventListener("touchend", () => {
+      isDraggingCrop = false;
+    });
+  }
+
+  // Zoom Slider Event
+  if (cropZoomSlider) {
+    cropZoomSlider.addEventListener("input", (e) => {
+      cropZoom = parseFloat(e.target.value);
+      drawCropImage();
+    });
+  }
+
+  // Mask Circle/Square buttons
+  if (maskCircleBtn) {
+    maskCircleBtn.addEventListener("click", () => {
+      maskCircleBtn.classList.add("active");
+      if (maskSquareBtn) maskSquareBtn.classList.remove("active");
+      if (maskOverlay) maskOverlay.style.borderRadius = "50%";
+    });
+  }
+
+  if (maskSquareBtn) {
+    maskSquareBtn.addEventListener("click", () => {
+      maskSquareBtn.classList.add("active");
+      if (maskCircleBtn) maskCircleBtn.classList.remove("active");
+      if (maskOverlay) maskOverlay.style.borderRadius = "16px";
+    });
+  }
+
+  // Remove Photo click
+  if (removePhotoBtn) {
+    removePhotoBtn.addEventListener("click", () => {
+      croppedImageBase64 = "";
+      if (formPhotoPreview) {
+        formPhotoPreview.src = "";
+        formPhotoPreview.style.display = "none";
+      }
+      if (formPhotoPlaceholder) formPhotoPlaceholder.style.display = "flex";
+      removePhotoBtn.style.display = "none";
+      if (photoInput) photoInput.value = "";
+    });
+  }
+
+  // Cancel/Close crop modal
+  const closeCropAction = () => {
+    if (cropModal) cropModal.classList.add("hidden");
+    if (photoInput) photoInput.value = "";
+  };
+  if (closeCropBtn) closeCropBtn.addEventListener("click", closeCropAction);
+  if (cancelCropBtn) cancelCropBtn.addEventListener("click", closeCropAction);
+
+  // Save Crop click (draw onto 300x300 canvas and output base64)
+  if (saveCropBtn) {
+    saveCropBtn.addEventListener("click", () => {
+      if (!cropImageObj) return;
+
+      const exportCanvas = document.createElement("canvas");
+      exportCanvas.width = 300;
+      exportCanvas.height = 300;
+      const exportCtx = exportCanvas.getContext("2d");
+
+      exportCtx.clearRect(0, 0, 300, 300);
+      
+      const scaleRatio = 300 / 340; // map 340px area to 300px
+      const cx = 150;
+      const cy = 150;
+
+      const imgWidth = cropImageObj.width;
+      const imgHeight = cropImageObj.height;
+      const scaleToFit = Math.min(400 / imgWidth, 400 / imgHeight);
+      
+      const drawW = imgWidth * scaleToFit * cropZoom * scaleRatio;
+      const drawH = imgHeight * scaleToFit * cropZoom * scaleRatio;
+
+      exportCtx.save();
+      exportCtx.translate(cx + cropOffsetX * scaleRatio, cy + cropOffsetY * scaleRatio);
+      exportCtx.drawImage(cropImageObj, -drawW / 2, -drawH / 2, drawW, drawH);
+      exportCtx.restore();
+
+      croppedImageBase64 = exportCanvas.toDataURL("image/jpeg", 0.85);
+
+      if (formPhotoPreview) {
+        formPhotoPreview.src = croppedImageBase64;
+        formPhotoPreview.style.display = "block";
+      }
+      if (formPhotoPlaceholder) formPhotoPlaceholder.style.display = "none";
+      if (removePhotoBtn) removePhotoBtn.style.display = "flex";
+
+      closeCropAction();
+    });
+  }
+
   // Add Monk Btn
   const addMonkBtn = document.getElementById("add-monk-btn");
   if (addMonkBtn && !addMonkBtn.dataset.bound) {
@@ -277,6 +642,15 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("form-monk-id").value = "";
       document.getElementById("form-monk-title").textContent = "เพิ่มข้อมูลพระภิกษุสงฆ์";
       
+      // Reset image preview inside form
+      croppedImageBase64 = "";
+      if (formPhotoPreview) {
+        formPhotoPreview.src = "";
+        formPhotoPreview.style.display = "none";
+      }
+      if (formPhotoPlaceholder) formPhotoPlaceholder.style.display = "flex";
+      if (removePhotoBtn) removePhotoBtn.style.display = "none";
+
       // Default to first tab
       document.querySelectorAll(".form-tab-btn")[0].click();
       
@@ -314,9 +688,20 @@ document.addEventListener("DOMContentLoaded", () => {
     monkForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       
+      // JS validation (replaces HTML required to avoid hidden-tab focus errors)
+      const titleVal = document.getElementById("f-title").value.trim();
+      const firstNameVal = document.getElementById("f-firstname").value.trim();
+      if (!titleVal || !firstNameVal) {
+        // Switch to Tab 1 so user sees the fields
+        document.querySelectorAll(".form-tab-btn")[0].click();
+        window.showToast("กรุณากรอกคำนำหน้า/สมณศักดิ์หลัก และชื่อจริง", "error");
+        return;
+      }
+
       const monkId = document.getElementById("form-monk-id").value;
       const newMonkData = {
         id: monkId,
+        image: croppedImageBase64,
         title: document.getElementById("f-title").value.trim(),
         firstName: document.getElementById("f-firstname").value.trim(),
         lastName: document.getElementById("f-lastname").value.trim(),
@@ -431,6 +816,7 @@ document.addEventListener("DOMContentLoaded", () => {
         type: document.getElementById("ft-type").value.trim(),
         district: document.getElementById("ft-district").value,
         subdistrict: document.getElementById("ft-subdistrict").value,
+        province: document.getElementById("ft-province").value,
         abbot: document.getElementById("ft-abbot").value.trim()
       };
 
@@ -555,36 +941,75 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("admin-stat-events").textContent = db.events.length;
   }
 
-  // Render Monks list into Admin Table
-  function renderMonksTable(monks) {
+  // Render Monks list into Admin Table with Pagination
+  function renderMonksTablePaged() {
     const tableBody = document.getElementById("admin-monk-table-body");
     if (!tableBody) return;
     
     tableBody.innerHTML = "";
+    const totalItems = filteredMonksList.length;
     
-    if (monks.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="7" class="text-center">ไม่พบข้อมูลพระภิกษุสงฆ์</td></tr>`;
+    if (totalItems === 0) {
+      tableBody.innerHTML = `<tr><td colspan="8" class="text-center">ไม่พบข้อมูลพระภิกษุสงฆ์</td></tr>`;
+      renderMonkPagination(0, 0, 0, 1);
       return;
     }
 
-    monks.forEach(monk => {
+    const totalPages = Math.ceil(totalItems / monksItemsPerPage) || 1;
+    if (monksCurrentPage > totalPages) monksCurrentPage = totalPages;
+    if (monksCurrentPage < 1) monksCurrentPage = 1;
+
+    const startIndex = (monksCurrentPage - 1) * monksItemsPerPage;
+    const endIndex = Math.min(startIndex + monksItemsPerPage, totalItems);
+    const pagedMonks = filteredMonksList.slice(startIndex, endIndex);
+
+    pagedMonks.forEach(monk => {
       const tr = document.createElement("tr");
-      const nameShort = monk.title ? monk.title : `${monk.firstName}`;
+      const { name: cleanedName, chaya: cleanedChaya } = cleanNameAndChaya(monk.firstName, monk.chaya);
+
+      // Clean name for admin table header
+      let displayName = monk.title || "";
+      const cleanTitle = (monk.title || "").trim();
+      const cleanNameVal = (cleanedName || "").trim();
+
+      if (cleanNameVal && cleanNameVal !== cleanTitle) {
+        if (cleanNameVal.startsWith(cleanTitle)) {
+          displayName = cleanNameVal;
+        } else if (cleanTitle.startsWith(cleanNameVal)) {
+          displayName = cleanTitle;
+        } else {
+          displayName = `${cleanTitle} ${cleanNameVal}`;
+        }
+      }
+
+      const nameShort = monk.title ? monk.title : `${cleanedName}`;
       const initials = nameShort.replace(/พระครู|พระเทพ|พระราช|พระศรี|พระสมุห์|พระมหา/g, "").trim().substring(0, 2);
       
-      let positionText = monk.sanghaPosition !== "ไม่มี" ? monk.sanghaPosition : monk.templePosition;
+      let positionText = "";
+      if (monk.sanghaPosition && monk.sanghaPosition !== "ไม่มี" && monk.sanghaPosition.trim() !== "") {
+        positionText = monk.sanghaPosition;
+      } else if (monk.templePosition && monk.templePosition !== "ไม่มี" && monk.templePosition.trim() !== "") {
+        positionText = monk.templePosition;
+      }
+      const hasPos = positionText && positionText !== "ไม่มี" && positionText.trim() !== "";
+      const positionBadgeHTML = hasPos ? `<span class="badge badge-primary">${positionText}</span>` : "";
+
+      let avatarHTML = `<span>${initials || "พ"}</span>`;
+      if (monk.image) {
+        avatarHTML = `<img src="${monk.image}" alt="${nameShort}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+      }
 
       tr.innerHTML = `
         <td>
           <div class="card-avatar" style="width:40px; height:40px; font-size:14px; margin: 0 auto;">
-            <span>${initials || "พ"}</span>
+            ${avatarHTML}
           </div>
         </td>
-        <td>
-          <strong>${monk.title} ${monk.firstName} ${monk.lastName}</strong>
-          <div style="font-size:12px; color:var(--text-muted);">ฉายา: ${monk.chaya}</div>
+        <td><strong>${displayName}</strong>
+          ${cleanedChaya ? `<div style="font-size:12px; color:var(--accent-gold); margin-top:2px;">ฉายา: ${cleanedChaya}</div>` : ""}
         </td>
-        <td><span class="badge badge-primary">${positionText}</span></td>
+        <td>${monk.province || 'พระนครศรีอยุธยา'}</td>
+        <td>${positionBadgeHTML}</td>
         <td><span class="badge badge-secondary">${monk.faction}</span></td>
         <td>${monk.residingTemple}</td>
         <td>${monk.vassa} พรรษา</td>
@@ -610,27 +1035,133 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== "undefined") {
       lucide.createIcons();
     }
+
+    renderMonkPagination(totalItems, startIndex, endIndex, totalPages);
   }
 
-  // Render Temples list into Admin Table
-  function renderTemplesTable(temples) {
+  function renderMonkPagination(totalItems, startIndex, endIndex, totalPages) {
+    const info = document.getElementById("admin-monk-pagination-info");
+    const controls = document.getElementById("admin-monk-pagination-controls");
+    if (!info || !controls) return;
+
+    if (totalItems === 0) {
+      info.textContent = "แสดง 0 - 0 จากทั้งหมด 0 รายการ";
+      controls.innerHTML = "";
+      return;
+    }
+
+    info.textContent = `แสดง ${(startIndex + 1).toLocaleString("th-TH")} - ${endIndex.toLocaleString("th-TH")} จากทั้งหมด ${totalItems.toLocaleString("th-TH")} รายการ (หน้า ${monksCurrentPage}/${totalPages})`;
+
+    controls.innerHTML = "";
+
+    // Prev
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "pagination-btn";
+    prevBtn.disabled = monksCurrentPage === 1;
+    prevBtn.innerHTML = '<i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>';
+    prevBtn.addEventListener("click", () => {
+      if (monksCurrentPage > 1) {
+        monksCurrentPage--;
+        renderMonksTablePaged();
+      }
+    });
+    controls.appendChild(prevBtn);
+
+    // Pages
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, monksCurrentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+      const p1 = createMonkPageBtn(1);
+      controls.appendChild(p1);
+      if (startPage > 2) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        controls.appendChild(ellipsis);
+      }
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+      const pBtn = createMonkPageBtn(p);
+      controls.appendChild(pBtn);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        controls.appendChild(ellipsis);
+      }
+      const pLast = createMonkPageBtn(totalPages);
+      controls.appendChild(pLast);
+    }
+
+    // Next
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "pagination-btn";
+    nextBtn.disabled = monksCurrentPage === totalPages;
+    nextBtn.innerHTML = '<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>';
+    nextBtn.addEventListener("click", () => {
+      if (monksCurrentPage < totalPages) {
+        monksCurrentPage++;
+        renderMonksTablePaged();
+      }
+    });
+    controls.appendChild(nextBtn);
+
+    if (typeof lucide !== "undefined") {
+      lucide.createIcons();
+    }
+  }
+
+  function createMonkPageBtn(pageNum) {
+    const btn = document.createElement("button");
+    btn.className = `pagination-btn ${pageNum === monksCurrentPage ? "active" : ""}`;
+    btn.textContent = pageNum.toLocaleString("th-TH");
+    btn.addEventListener("click", () => {
+      monksCurrentPage = pageNum;
+      renderMonksTablePaged();
+    });
+    return btn;
+  }
+
+  // Render Temples list into Admin Table with Pagination
+  function renderTemplesTablePaged() {
     const tableBody = document.getElementById("admin-temple-table-body");
     if (!tableBody) return;
     
     tableBody.innerHTML = "";
+    const totalItems = filteredTemplesList.length;
     
-    if (temples.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="6" class="text-center">ไม่พบข้อมูลวัด</td></tr>`;
+    if (totalItems === 0) {
+      tableBody.innerHTML = `<tr><td colspan="7" class="text-center">ไม่พบข้อมูลวัด</td></tr>`;
+      renderTemplePagination(0, 0, 0, 1);
       return;
     }
 
-    temples.forEach(temple => {
+    const totalPages = Math.ceil(totalItems / templesItemsPerPage) || 1;
+    if (templesCurrentPage > totalPages) templesCurrentPage = totalPages;
+    if (templesCurrentPage < 1) templesCurrentPage = 1;
+
+    const startIndex = (templesCurrentPage - 1) * templesItemsPerPage;
+    const endIndex = Math.min(startIndex + templesItemsPerPage, totalItems);
+    const pagedTemples = filteredTemplesList.slice(startIndex, endIndex);
+
+    pagedTemples.forEach(temple => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>${temple.name}</strong></td>
         <td><span class="badge badge-secondary">${temple.type}</span></td>
         <td>${temple.subdistrict}</td>
         <td>${temple.district}</td>
+        <td>${temple.province || 'พระนครศรีอยุธยา'}</td>
         <td>${temple.abbot}</td>
         <td>
           <div class="row-actions" style="display:flex; gap:8px;">
@@ -654,6 +1185,101 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== "undefined") {
       lucide.createIcons();
     }
+
+    renderTemplePagination(totalItems, startIndex, endIndex, totalPages);
+  }
+
+  function renderTemplePagination(totalItems, startIndex, endIndex, totalPages) {
+    const info = document.getElementById("admin-temple-pagination-info");
+    const controls = document.getElementById("admin-temple-pagination-controls");
+    if (!info || !controls) return;
+
+    if (totalItems === 0) {
+      info.textContent = "แสดง 0 - 0 จากทั้งหมด 0 รายการ";
+      controls.innerHTML = "";
+      return;
+    }
+
+    info.textContent = `แสดง ${(startIndex + 1).toLocaleString("th-TH")} - ${endIndex.toLocaleString("th-TH")} จากทั้งหมด ${totalItems.toLocaleString("th-TH")} รายการ (หน้า ${templesCurrentPage}/${totalPages})`;
+
+    controls.innerHTML = "";
+
+    // Prev
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "pagination-btn";
+    prevBtn.disabled = templesCurrentPage === 1;
+    prevBtn.innerHTML = '<i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>';
+    prevBtn.addEventListener("click", () => {
+      if (templesCurrentPage > 1) {
+        templesCurrentPage--;
+        renderTemplesTablePaged();
+      }
+    });
+    controls.appendChild(prevBtn);
+
+    // Pages
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, templesCurrentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+      const p1 = createTemplePageBtn(1);
+      controls.appendChild(p1);
+      if (startPage > 2) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        controls.appendChild(ellipsis);
+      }
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+      const pBtn = createTemplePageBtn(p);
+      controls.appendChild(pBtn);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement("span");
+        ellipsis.className = "pagination-ellipsis";
+        ellipsis.textContent = "...";
+        controls.appendChild(ellipsis);
+      }
+      const pLast = createTemplePageBtn(totalPages);
+      controls.appendChild(pLast);
+    }
+
+    // Next
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "pagination-btn";
+    nextBtn.disabled = templesCurrentPage === totalPages;
+    nextBtn.innerHTML = '<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>';
+    nextBtn.addEventListener("click", () => {
+      if (templesCurrentPage < totalPages) {
+        templesCurrentPage++;
+        renderTemplesTablePaged();
+      }
+    });
+    controls.appendChild(nextBtn);
+
+    if (typeof lucide !== "undefined") {
+      lucide.createIcons();
+    }
+  }
+
+  function createTemplePageBtn(pageNum) {
+    const btn = document.createElement("button");
+    btn.className = `pagination-btn ${pageNum === templesCurrentPage ? "active" : ""}`;
+    btn.textContent = pageNum.toLocaleString("th-TH");
+    btn.addEventListener("click", () => {
+      templesCurrentPage = pageNum;
+      renderTemplesTablePaged();
+    });
+    return btn;
   }
 
   // Render Events list into Admin Table
@@ -706,44 +1332,277 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Setup live search on tables
-  function setupSearchFilters(db) {
-    // Monk search
-    document.getElementById("admin-search-monk").addEventListener("input", (e) => {
-      const q = e.target.value.toLowerCase();
-      const filtered = db.monks.filter(m => 
+  function updateDistrictOptions(provinceVal, districtSelectId, subdistrictSelectId, db) {
+    const distSelect = document.getElementById(districtSelectId);
+    const subSelect = document.getElementById(subdistrictSelectId);
+    if (!distSelect) return;
+
+    distSelect.innerHTML = '<option value="">ทุกอำเภอ</option>';
+    subSelect.innerHTML = '<option value="">ทุกตำบล</option>';
+    subSelect.disabled = true;
+
+    if (!provinceVal) {
+      distSelect.disabled = true;
+      return;
+    }
+
+    const districts = new Set();
+    db.temples.forEach(t => {
+      if (t.province === provinceVal && t.district) {
+        districts.add(t.district);
+      }
+    });
+
+    const sortedDistricts = Array.from(districts).sort();
+    if (sortedDistricts.length > 0) {
+      distSelect.disabled = false;
+      sortedDistricts.forEach(d => {
+        const option = document.createElement("option");
+        option.value = d;
+        option.textContent = d;
+        distSelect.appendChild(option);
+      });
+    } else {
+      distSelect.disabled = true;
+    }
+  }
+
+  function updateSubdistrictOptions(provinceVal, districtVal, subdistrictSelectId, db) {
+    const subSelect = document.getElementById(subdistrictSelectId);
+    if (!subSelect) return;
+
+    subSelect.innerHTML = '<option value="">ทุกตำบล</option>';
+
+    if (!districtVal) {
+      subSelect.disabled = true;
+      return;
+    }
+
+    const subdistricts = new Set();
+    db.temples.forEach(t => {
+      if (t.province === provinceVal && t.district === districtVal && t.subdistrict) {
+        subdistricts.add(t.subdistrict);
+      }
+    });
+
+    const sortedSubdistricts = Array.from(subdistricts).sort();
+    if (sortedSubdistricts.length > 0) {
+      subSelect.disabled = false;
+      sortedSubdistricts.forEach(sd => {
+        const option = document.createElement("option");
+        option.value = sd;
+        option.textContent = sd;
+        subSelect.appendChild(option);
+      });
+    } else {
+      subSelect.disabled = true;
+    }
+  }
+
+  function filterAndRenderMonksAdmin(db) {
+    const q = document.getElementById("admin-search-monk").value.toLowerCase();
+    const provinceFilter = document.getElementById("admin-filter-monk-province").value;
+    const districtFilter = document.getElementById("admin-filter-monk-district").value;
+    const subdistrictFilter = document.getElementById("admin-filter-monk-subdistrict").value;
+    const positionFilter = document.getElementById("admin-filter-monk-position").value;
+
+    let filtered = db.monks.filter(m => {
+      const matchesSearch = !q || 
         m.firstName.toLowerCase().includes(q) ||
         m.lastName.toLowerCase().includes(q) ||
         m.title.toLowerCase().includes(q) ||
         m.chaya.toLowerCase().includes(q) ||
         m.residingTemple.toLowerCase().includes(q) ||
-        m.sanghaPosition.toLowerCase().includes(q)
-      );
-      renderMonksTable(filtered);
+        m.sanghaPosition.toLowerCase().includes(q);
+
+      const matchesProvince = !provinceFilter || m.province === provinceFilter;
+      const matchesDistrict = !districtFilter || m.district === districtFilter;
+      const matchesSubdistrict = !subdistrictFilter || m.subdistrict === subdistrictFilter;
+
+      let matchesPosition = true;
+      if (positionFilter) {
+        if (positionFilter === "เจ้าคณะภาค") {
+          matchesPosition = m.sanghaPosition.includes("เจ้าคณะภาค") && !m.sanghaPosition.includes("รอง") && !m.sanghaPosition.includes("ที่ปรึกษา") && !m.sanghaPosition.includes("เลขานุการ");
+        } else if (positionFilter === "รองเจ้าคณะภาค") {
+          matchesPosition = m.sanghaPosition.includes("รองเจ้าคณะภาค");
+        } else if (positionFilter === "ที่ปรึกษาเจ้าคณะภาค") {
+          matchesPosition = m.sanghaPosition.includes("ที่ปรึกษาเจ้าคณะภาค") || m.sanghaPosition.includes("ทป.จภ");
+        } else if (positionFilter === "เลขานุการเจ้าคณะภาค") {
+          matchesPosition = m.sanghaPosition.includes("เลขานุการเจ้าคณะภาค") || m.sanghaPosition.includes("เลข.จภ");
+        } else if (positionFilter === "เลขานุการ") {
+          matchesPosition = m.sanghaPosition.includes("เลขานุการ") || m.sanghaPosition.includes("เลข.");
+        } else {
+          matchesPosition = m.sanghaPosition.includes(positionFilter) || m.templePosition === positionFilter;
+        }
+      }
+
+      return matchesSearch && matchesProvince && matchesDistrict && matchesSubdistrict && matchesPosition;
     });
 
-    // Temple search
-    document.getElementById("admin-search-temple").addEventListener("input", (e) => {
-      const q = e.target.value.toLowerCase();
-      const filtered = db.temples.filter(t => 
+    // Sort so Regional leaders and Provincial leaders appear at top
+    filtered.sort((a, b) => {
+      const getRank = (monk) => {
+        const pos = (monk.sanghaPosition || "").trim();
+        if (pos === "เจ้าคณะภาค 2" || pos === "เจ้าคณะภาค") return 1;
+        if (pos.includes("รองเจ้าคณะภาค")) return 2;
+        if (pos.includes("ที่ปรึกษาเจ้าคณะภาค") || pos.includes("เลขานุการเจ้าคณะภาค")) return 3;
+        if (pos.startsWith("จจ") || pos === "เจ้าคณะจังหวัด") return 4;
+        if (pos.startsWith("รจจ") || pos === "รองเจ้าคณะจังหวัด") return 5;
+        return 6;
+      };
+      
+      const rankA = getRank(a);
+      const rankB = getRank(b);
+      if (rankA !== rankB) return rankA - rankB;
+      
+      return a.id - b.id;
+    });
+
+    filteredMonksList = filtered;
+    monksCurrentPage = 1;
+    renderMonksTablePaged();
+  }
+
+  function filterAndRenderTemplesAdmin(db) {
+    const q = document.getElementById("admin-search-temple").value.toLowerCase();
+    const provinceFilter = document.getElementById("admin-filter-temple-province").value;
+    const districtFilter = document.getElementById("admin-filter-temple-district").value;
+    const subdistrictFilter = document.getElementById("admin-filter-temple-subdistrict").value;
+    const typeFilter = document.getElementById("admin-filter-temple-type").value;
+
+    let filtered = db.temples.filter(t => {
+      const matchesSearch = !q || 
         t.name.toLowerCase().includes(q) ||
         t.district.toLowerCase().includes(q) ||
         t.subdistrict.toLowerCase().includes(q) ||
-        t.abbot.toLowerCase().includes(q)
-      );
-      renderTemplesTable(filtered);
+        t.abbot.toLowerCase().includes(q);
+
+      const matchesProvince = !provinceFilter || t.province === provinceFilter;
+      const matchesDistrict = !districtFilter || t.district === districtFilter;
+      const matchesSubdistrict = !subdistrictFilter || t.subdistrict === subdistrictFilter;
+      const matchesType = !typeFilter || t.type === typeFilter;
+
+      return matchesSearch && matchesProvince && matchesDistrict && matchesSubdistrict && matchesType;
     });
 
-    // Event search
-    document.getElementById("admin-search-event").addEventListener("input", (e) => {
-      const q = e.target.value.toLowerCase();
-      const filtered = db.events.filter(ev => 
-        ev.title.toLowerCase().includes(q) ||
-        ev.description.toLowerCase().includes(q) ||
-        ev.date.toLowerCase().includes(q)
-      );
-      renderEventsTable(filtered);
-    });
+    filteredTemplesList = filtered;
+    templesCurrentPage = 1;
+    renderTemplesTablePaged();
+  }
+
+  function setupAdminFiltersOnce(db) {
+    if (window.adminFiltersBound) {
+      return;
+    }
+
+    const searchMonk = document.getElementById("admin-search-monk");
+    const filterMonkProv = document.getElementById("admin-filter-monk-province");
+    const filterMonkDist = document.getElementById("admin-filter-monk-district");
+    const filterMonkSub = document.getElementById("admin-filter-monk-subdistrict");
+    const filterMonkPos = document.getElementById("admin-filter-monk-position");
+    const resetMonkBtn = document.getElementById("admin-reset-monk-filters");
+
+    const onMonkFilterChange = () => {
+      filterAndRenderMonksAdmin(window.SANGHA_DATA);
+    };
+
+    if (searchMonk) searchMonk.addEventListener("input", onMonkFilterChange);
+    
+    if (filterMonkProv) {
+      filterMonkProv.addEventListener("change", () => {
+        updateDistrictOptions(filterMonkProv.value, "admin-filter-monk-district", "admin-filter-monk-subdistrict", window.SANGHA_DATA);
+        onMonkFilterChange();
+      });
+    }
+
+    if (filterMonkDist) {
+      filterMonkDist.addEventListener("change", () => {
+        updateSubdistrictOptions(filterMonkProv.value, filterMonkDist.value, "admin-filter-monk-subdistrict", window.SANGHA_DATA);
+        onMonkFilterChange();
+      });
+    }
+
+    if (filterMonkSub) filterMonkSub.addEventListener("change", onMonkFilterChange);
+    if (filterMonkPos) filterMonkPos.addEventListener("change", onMonkFilterChange);
+    
+    if (resetMonkBtn) {
+      resetMonkBtn.addEventListener("click", () => {
+        if (searchMonk) searchMonk.value = "";
+        if (filterMonkProv) filterMonkProv.value = "";
+        if (filterMonkDist) {
+          filterMonkDist.innerHTML = '<option value="">ทุกอำเภอ</option>';
+          filterMonkDist.disabled = true;
+        }
+        if (filterMonkSub) {
+          filterMonkSub.innerHTML = '<option value="">ทุกตำบล</option>';
+          filterMonkSub.disabled = true;
+        }
+        if (filterMonkPos) filterMonkPos.value = "";
+        onMonkFilterChange();
+      });
+    }
+
+    const searchTemple = document.getElementById("admin-search-temple");
+    const filterTempleProv = document.getElementById("admin-filter-temple-province");
+    const filterTempleDist = document.getElementById("admin-filter-temple-district");
+    const filterTempleSub = document.getElementById("admin-filter-temple-subdistrict");
+    const filterTempleType = document.getElementById("admin-filter-temple-type");
+    const resetTempleBtn = document.getElementById("admin-reset-temple-filters");
+
+    const onTempleFilterChange = () => {
+      filterAndRenderTemplesAdmin(window.SANGHA_DATA);
+    };
+
+    if (searchTemple) searchTemple.addEventListener("input", onTempleFilterChange);
+
+    if (filterTempleProv) {
+      filterTempleProv.addEventListener("change", () => {
+        updateDistrictOptions(filterTempleProv.value, "admin-filter-temple-district", "admin-filter-temple-subdistrict", window.SANGHA_DATA);
+        onTempleFilterChange();
+      });
+    }
+
+    if (filterTempleDist) {
+      filterTempleDist.addEventListener("change", () => {
+        updateSubdistrictOptions(filterTempleProv.value, filterTempleDist.value, "admin-filter-temple-subdistrict", window.SANGHA_DATA);
+        onTempleFilterChange();
+      });
+    }
+
+    if (filterTempleSub) filterTempleSub.addEventListener("change", onTempleFilterChange);
+    if (filterTempleType) filterTempleType.addEventListener("change", onTempleFilterChange);
+
+    if (resetTempleBtn) {
+      resetTempleBtn.addEventListener("click", () => {
+        if (searchTemple) searchTemple.value = "";
+        if (filterTempleProv) filterTempleProv.value = "";
+        if (filterTempleDist) {
+          filterTempleDist.innerHTML = '<option value="">ทุกอำเภอ</option>';
+          filterTempleDist.disabled = true;
+        }
+        if (filterTempleSub) {
+          filterTempleSub.innerHTML = '<option value="">ทุกตำบล</option>';
+          filterTempleSub.disabled = true;
+        }
+        if (filterTempleType) filterTempleType.value = "";
+        onTempleFilterChange();
+      });
+    }
+
+    const searchEvent = document.getElementById("admin-search-event");
+    if (searchEvent) {
+      searchEvent.addEventListener("input", (e) => {
+        const q = e.target.value.toLowerCase();
+        const filtered = window.SANGHA_DATA.events.filter(ev => 
+          ev.title.toLowerCase().includes(q) ||
+          ev.description.toLowerCase().includes(q) ||
+          ev.date.toLowerCase().includes(q)
+        );
+        renderEventsTable(filtered);
+      });
+    }
+
+    window.adminFiltersBound = true;
   }
 
   // Setup form select cascading dropdowns (District -> Subdistrict)
@@ -811,10 +1670,30 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("form-monk-id").value = monk.id;
     document.getElementById("form-monk-title").textContent = "แก้ไขข้อมูลพระภิกษุสงฆ์";
 
+    // Set photo preview states
+    if (monk.image) {
+      croppedImageBase64 = monk.image;
+      if (formPhotoPreview) {
+        formPhotoPreview.src = monk.image;
+        formPhotoPreview.style.display = "block";
+      }
+      if (formPhotoPlaceholder) formPhotoPlaceholder.style.display = "none";
+      if (removePhotoBtn) removePhotoBtn.style.display = "flex";
+    } else {
+      croppedImageBase64 = "";
+      if (formPhotoPreview) {
+        formPhotoPreview.src = "";
+        formPhotoPreview.style.display = "none";
+      }
+      if (formPhotoPlaceholder) formPhotoPlaceholder.style.display = "flex";
+      if (removePhotoBtn) removePhotoBtn.style.display = "none";
+    }
+
     // Set simple inputs
     document.getElementById("f-title").value = monk.title;
     document.getElementById("f-firstname").value = monk.firstName;
     document.getElementById("f-lastname").value = monk.lastName;
+    document.getElementById("f-province").value = monk.province || "พระนครศรีอยุธยา";
     document.getElementById("f-chaya").value = monk.chaya;
     document.getElementById("f-nickname").value = monk.nickname || "";
     document.getElementById("f-idcard").value = monk.idCard;
@@ -832,13 +1711,28 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("f-rankclass").value = monk.rankClass;
     document.getElementById("f-other-pos").value = monk.otherPosition || "";
 
-    // Set select inputs
-    document.getElementById("f-dhamma").value = monk.dhammaEducation;
-    document.getElementById("f-pali").value = monk.paliEducation;
-    document.getElementById("f-temple-pos").value = monk.templePosition;
-    document.getElementById("f-sangha-pos").value = monk.sanghaPosition;
-    document.getElementById("f-upajjhaya-status").value = monk.upajjhayaStatus;
-    document.getElementById("f-faction").value = monk.faction;
+    // Helper: safely set select value, inject option if DB value is not in dropdown
+    function safeSetSelect(selectId, dbValue) {
+      const sel = document.getElementById(selectId);
+      if (!sel || !dbValue) return;
+      // Check if value exists in options
+      const exists = Array.from(sel.options).some(o => o.value === dbValue);
+      if (!exists) {
+        const opt = document.createElement("option");
+        opt.value = dbValue;
+        opt.textContent = dbValue;
+        sel.appendChild(opt);
+      }
+      sel.value = dbValue;
+    }
+
+    // Set select inputs (with safe injection for abbreviated DB codes)
+    safeSetSelect("f-dhamma", monk.dhammaEducation);
+    safeSetSelect("f-pali", monk.paliEducation);
+    safeSetSelect("f-temple-pos", monk.templePosition);
+    safeSetSelect("f-sangha-pos", monk.sanghaPosition);
+    safeSetSelect("f-upajjhaya-status", monk.upajjhayaStatus);
+    safeSetSelect("f-faction", monk.faction);
 
     // Set Cascading selects
     const districtSelect = document.getElementById("f-district");
@@ -897,6 +1791,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("ft-name").value = temple.name;
     document.getElementById("ft-type").value = temple.type;
     document.getElementById("ft-abbot").value = temple.abbot;
+    document.getElementById("ft-province").value = temple.province || "พระนครศรีอยุธยา";
 
     const districtSelect = document.getElementById("ft-district");
     const subdistSelect = document.getElementById("ft-subdistrict");
