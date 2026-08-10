@@ -159,6 +159,32 @@
         </div>
 
         <!-- Quick actions -->
+        <div class="quick-tools-card" style="margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <i data-lucide="github" style="width: 24px; height: 24px; color: var(--accent-gold);"></i>
+            <h3 style="margin: 0;">ตั้งค่าซิงก์ข้อมูลขึ้น GitHub Pages อัตโนมัติ (ใช้งานได้จากทุกอุปกรณ์)</h3>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+            ระบุ GitHub Personal Access Token (PAT) ครั้งเดียวในมือถือหรือคอมพิวเตอร์ที่ใช้จัดการ เพื่อให้ระบบบันทึกและซิงก์ไฟล์ <code style="color: var(--accent-gold);">data.json</code> และ <code style="color: var(--accent-gold);">data.js</code> ขึ้น GitHub Pages ให้อัตโนมัติทันทีที่เพิ่มหรืออัปเดตรูปภาพ
+          </p>
+          
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div style="flex: 1; min-width: 280px; position: relative;">
+              <input type="password" id="github-pat-token" placeholder="วาง GitHub Personal Access Token (ghp_...)" style="width: 100%; padding: 12px 40px 12px 14px; border-radius: 10px; border: 1px solid var(--border-light); background: var(--bg-tertiary); color: var(--text-primary); font-size: 13px; outline: none;">
+              <button type="button" id="toggle-pat-visibility" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;" title="แสดง/ซ่อน Token">
+                <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+              </button>
+            </div>
+            <button id="save-pat-btn" class="btn btn-secondary" style="padding: 12px 18px; font-size: 13px;">
+              <i data-lucide="save"></i> บันทึก Token
+            </button>
+            <button id="sync-github-now-btn" class="btn btn-primary" style="padding: 12px 22px; font-size: 13px;">
+              <i data-lucide="upload-cloud"></i> ⚡ ซิงก์ข้อมูลขึ้น GitHub Pages ทันที
+            </button>
+          </div>
+          <div id="github-sync-status" style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);"></div>
+        </div>
+
         <div class="quick-tools-card">
           <h3>เครื่องมือระบบเพิ่มเติม</h3>
           <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">ใช้ในการตั้งค่าระบบฐานข้อมูลจำลองใหม่กรณีต้องการล้างข้อมูลเพื่อเริ่มการทดสอบใหม่</p>

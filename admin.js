@@ -1880,4 +1880,146 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   }
+
+
+  // ==================== GITHUB PAGES AUTO SYNC API ENGINE ====================
+  const patInput = document.getElementById("github-pat-token");
+  const savePatBtn = document.getElementById("save-pat-btn");
+  const togglePatBtn = document.getElementById("toggle-pat-visibility");
+  const syncGithubBtn = document.getElementById("sync-github-now-btn");
+  const syncStatusEl = document.getElementById("github-sync-status");
+
+  // Load saved PAT
+  if (patInput) {
+    const savedToken = localStorage.getItem("GITHUB_PAT") || "";
+    patInput.value = savedToken;
+  }
+
+  if (togglePatBtn) {
+    togglePatBtn.addEventListener("click", () => {
+      if (patInput.type === "password") {
+        patInput.type = "text";
+      } else {
+        patInput.type = "password";
+      }
+    });
+  }
+
+  if (savePatBtn) {
+    savePatBtn.addEventListener("click", () => {
+      const tokenVal = patInput.value.trim();
+      localStorage.setItem("GITHUB_PAT", tokenVal);
+      window.alert(tokenVal ? "บันทึก GitHub Access Token เรียบร้อยแล้ว" : "ลบ GitHub Access Token เรียบร้อยแล้ว");
+    });
+  }
+
+  async function pushFileToGitHub(token, repoOwner, repoName, filePath, textContent, commitMessage) {
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+    
+    // 1. Get current file SHA if exists
+    let sha = null;
+    try {
+      const getRes = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      if (getRes.ok) {
+        const fileData = await getRes.json();
+        sha = fileData.sha;
+      }
+    } catch(e) {}
+
+    // Encode text content to Base64 (supporting UTF-8 characters)
+    const encoder = new TextEncoder();
+    const dataBytes = encoder.encode(textContent);
+    let binaryStr = "";
+    for (let i = 0; i < dataBytes.length; i++) {
+      binaryStr += String.fromCharCode(dataBytes[i]);
+    }
+    const base64Content = btoa(binaryStr);
+
+    const payload = {
+      message: commitMessage,
+      content: base64Content,
+      branch: "main"
+    };
+    if (sha) payload.sha = sha;
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!putRes.ok) {
+      const errJson = await putRes.json();
+      throw new Error(errJson.message || "GitHub API update failed");
+    }
+    return await putRes.json();
+  }
+
+  window.syncToGitHubPages = async function(manualTrigger = true) {
+    const token = (localStorage.getItem("GITHUB_PAT") || "").trim();
+    if (!token) {
+      if (manualTrigger) {
+        window.alert("กรุณากรอก GitHub Personal Access Token (PAT) ก่อนดำเนินการซิงก์");
+      }
+      return false;
+    }
+
+    if (syncStatusEl) {
+      syncStatusEl.innerHTML = '<span style="color: var(--accent-gold);"><i data-lucide="loader-2" class="spin"></i> กำลังเตรียมข้อมูลและซิงก์ขึ้น GitHub Pages...</span>';
+      if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+
+    try {
+      let db = window.SANGHA_DATA;
+      if (!db || !db.monks) {
+        db = JSON.parse(localStorage.getItem("SANGHA_DATABASE"));
+      }
+      if (!db || !db.monks) throw new Error("ไม่พบข้อมูลคณะสงฆ์ในระบบ");
+
+      const jsonStr = JSON.stringify(db, null, 2);
+      const jsStr = `window.SANGHA_DATA_FALLBACK = ${jsonStr};`;
+
+      const repoOwner = "vachiravich";
+      const repoName = "temple2-demo";
+      const timestampStr = new Date().toLocaleString("th-TH");
+
+      // Push data.json
+      await pushFileToGitHub(token, repoOwner, repoName, "data.json", jsonStr, `Auto-sync data.json via Admin Dashboard (${timestampStr})`);
+      
+      // Push data.js
+      await pushFileToGitHub(token, repoOwner, repoName, "data.js", jsStr, `Auto-sync data.js via Admin Dashboard (${timestampStr})`);
+
+      if (syncStatusEl) {
+        syncStatusEl.innerHTML = `<span style="color: #10b981;">✅ ซิงก์ข้อมูลขึ้น GitHub Pages เรียบร้อยแล้ว (${timestampStr})</span>`;
+      }
+      if (manualTrigger) {
+        window.alert("ซิงก์ข้อมูลและรูปภาพขึ้น GitHub Pages สำเร็จเรียบร้อยแล้ว!");
+      }
+      return true;
+    } catch(err) {
+      console.error("GitHub Sync error:", err);
+      if (syncStatusEl) {
+        syncStatusEl.innerHTML = `<span style="color: #ef4444;">❌ ซิงก์ล้มเหลว: ${err.message}</span>`;
+      }
+      if (manualTrigger) {
+        window.alert(`เกิดข้อผิดพลาดในการซิงก์ GitHub: ${err.message}`);
+      }
+      return false;
+    }
+  };
+
+  if (syncGithubBtn) {
+    syncGithubBtn.addEventListener("click", () => {
+      window.syncToGitHubPages(true);
+    });
+  }
 });
