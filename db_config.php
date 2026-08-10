@@ -3,7 +3,6 @@
 if (
     php_sapi_name() === 'cli' ||
     (isset($_SERVER['SERVER_NAME']) && (
-        strstr($_SERVER['SERVER_NAME'], 'photomerit.test') || 
         strstr($_SERVER['SERVER_NAME'], 'temple2.test') || 
         strstr($_SERVER['SERVER_NAME'], 'localhost') || 
         $_SERVER['SERVER_NAME'] === '127.0.0.1'
