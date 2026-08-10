@@ -744,10 +744,19 @@ document.addEventListener("DOMContentLoaded", () => {
           newMonkData.id = "monk-" + Date.now();
           currentDb.monks.push(newMonkData);
         }
+  function triggerAutoGitHubSync() {
+    if (typeof window.syncToGitHubPages === "function") {
+      setTimeout(() => {
+        window.syncToGitHubPages(false);
+      }, 500);
+    }
+  }
+
         localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
-        alert("บันทึกข้อมูลพระสงฆ์เรียบร้อยแล้ว (บราวเซอร์)");
+        alert("บันทึกข้อมูลพระสงฆ์เรียบร้อยแล้ว");
         closeMonkForm();
         initializeDashboard();
+        triggerAutoGitHubSync();
       } else {
         try {
           const response = await fetch('api_manage.php?action=save_monk', {
@@ -760,6 +769,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (r.status === 'success') {
             closeMonkForm();
             initializeDashboard();
+            triggerAutoGitHubSync();
           }
         } catch (err) {
           alert("ไม่สามารถบันทึกข้อมูลพระสงฆ์ได้: " + err.message);
@@ -832,9 +842,10 @@ document.addEventListener("DOMContentLoaded", () => {
           currentDb.temples.push(newTempleData);
         }
         localStorage.setItem("SANGHA_DATABASE", JSON.stringify(currentDb));
-        alert("บันทึกข้อมูลวัดเรียบร้อยแล้ว (บราวเซอร์)");
+        alert("บันทึกข้อมูลวัดเรียบร้อยแล้ว");
         closeTempleForm();
         initializeDashboard();
+        triggerAutoGitHubSync();
       } else {
         try {
           const response = await fetch('api_manage.php?action=save_temple', {
@@ -847,6 +858,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (r.status === 'success') {
             closeTempleForm();
             initializeDashboard();
+            triggerAutoGitHubSync();
           }
         } catch (err) {
           alert("ไม่สามารถบันทึกข้อมูลวัดได้: " + err.message);
