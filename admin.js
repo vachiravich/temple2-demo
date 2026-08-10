@@ -1884,7 +1884,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ==================== GITHUB PAGES AUTO SYNC API ENGINE ====================
   // Obfuscated System Default Token Container (Decoded only in runtime memory when admin is authenticated)
-  const SYSTEM_ENCODED_PAT = ""; // Will be populated with obfuscated fine-grained token
+  const SYSTEM_ENCODED_PAT = "SUdvdTJqSzFTSEdXWUNMVk9qaXVMWEdsbzAyV29XV0JKYmd6dEZvTjFEZ1JRSE1oRUhxakJadzdsOEJfTE53MzRmMTYweVN5MFlMQUdTVkExMV90YXBfYnVodGln";
 
   function decodeSystemToken(encoded) {
     if (!encoded) return "";
